@@ -1,7 +1,14 @@
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "main_aux.h"
+#include "parser.h"
 
+#define DELIMITER " \t\r\n"
+#define MALLOC_ERROR "Error: malloc has failed\n"
+
+/* You should be using the strtok function using the ' \t\r\n' delimiter https://www.codingame.com/playgrounds/14213/how-to-play-with-strings-in-c/string-split */
 int get_fixed_cells() {
 	int fixedCells;
 	if (scanf("%d", &fixedCells) != 1) {
@@ -14,4 +21,68 @@ int get_fixed_cells() {
 		}
 	}
 	return fixedCells;
+}
+
+const char* get_command_name(int cmd_id) {
+	static char* names[] = { "invalid_command", "set", "hint", "validate", "restart", "exit" };
+	if (cmd_id < INVALID_COMMAND || cmd_id > EXIT) {
+		return 0;
+	} else {
+		return names[cmd_id];
+	}
+}
+
+int get_command_id(char *type) {
+	int cmd_id;
+	if (!type || type == '\0')
+		return -1;
+	for (cmd_id = INVALID_COMMAND; cmd_id <= EXIT; cmd_id++) {
+		if (!strcmp(type, get_command_name(cmd_id)))
+			return cmd_id;
+	}
+	return -1;
+}
+
+Command* create_new_command_object(int cmd_id, int params[3]) {
+	int i;
+	Command* cmd = (Command*) malloc(sizeof(Command));
+	if (cmd == NULL) {
+		printf(MALLOC_ERROR);
+		exit(EXIT_FAILURE);
+	}
+
+	cmd->id = cmd_id;
+
+	for (i = 0; i < 3; i++) {
+		cmd->params[i] = params[i];
+	}
+	return cmd;
+}
+
+Command* parse_command(char userInput[]) {
+	int cmd_id;
+	int param_counter = 0;
+	int params[3] = { 0 };
+
+	char *token = strtok(userInput, DELIMITER);
+	if (!token) {
+		/*
+		 * Failed to parse any input from the user, hence continuing.
+		 */
+		return NULL;
+	}
+	cmd_id = get_command_id(token);
+
+	/*
+	 * Populating the param list.(No need to check more then 3 params)
+	 */
+	token = strtok(NULL, DELIMITER);
+	while(token && param_counter < 3) {
+		params[param_counter] = atoi(token);
+		/* We were directed to assume that X Y Z are valid integers so no need to check validity. */
+		param_counter++;
+		token = strtok(NULL, DELIMITER);
+	}
+
+	return create_new_command_object(cmd_id, params);
 }

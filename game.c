@@ -25,31 +25,38 @@ void destroyCell(Cell* cell){
 
 
 Board* createBoard(int boardSize,int blockRows, int blockCols){
+	int i, j;
+	int** solution;
 	int total_size = boardSize*boardSize;
 	Board* board;
+	Cell** current;
+
 	if((board = (Board*) malloc(sizeof(Board))) == NULL){
 		fprintf(stderr,"%s on Board\n",MALLOC_ERROR);
+		/*
+		 * Are you sure it's the right error format?
+		 */
 		return NULL;
 	}
 	board->board_size = boardSize;
 	board->block_rows = blockRows;
 	board->block_cols = blockCols;
-	int** solution;
+
 	if((solution = (int**) calloc(total_size,sizeof(int))) == NULL){
 		fprintf(stderr,MALLOC_ERROR);
 		return NULL;
 	}
 	board->solution = solution;
 
-	Cell** current;
+
 	if((current = (Cell**) malloc(boardSize*sizeof(Cell*))) == NULL){
 		fprintf(stderr,"%s on cell pointers array\n",MALLOC_ERROR);
 		free(board);
 		return NULL;
 	}
-	for(int i = 0; i < boardSize; i++){
+	for(i = 0; i < boardSize; i++){
 		current[i] = (Cell*) malloc(boardSize*sizeof(Cell));
-		for(int j = 0; j < boardSize; j++){
+		for(j = 0; j < boardSize; j++){
 			createCell(&current[i][j],0);
 		}
 	}
@@ -59,22 +66,30 @@ Board* createBoard(int boardSize,int blockRows, int blockCols){
 }
 
 void destroyBoard(Board* b){
-	for(int i = 0; i < b->board_size; i++)
-		for(int j = 0; j < b->board_size; j++)
+	int i, j;
+	for(i = 0; i < b->board_size; i++)
+		for(j = 0; j < b->board_size; j++)
 			destroyCell(&(b->current_board)[i][j]);
 	free(b->current_board);
 	free(b->solution);
 }
-/*
-void initializeBoard(){
+
+Board* create_user_board(Board *originalBoard){
 	int fixedCells;
-	char** sudoku;
-	printf("Please enter the number of cells to fill [0-80]:\n")
+	/* char** sudoku; */
+	printf("Please enter the number of cells to fill [0-80]:\n");
 	fixedCells = get_fixed_cells();
-	sudoku = generateBoard();
-	randomlySelectBoard(sudoku, fixedCells);
+
+	/*
+	 * generate the random board for the user based on the original_board
+	 */
+	return originalBoard;
 }
 
-void randomlySelectBoard(char[][] sudoku, int fixedCells){
-
-}*/
+void execute_command(Command* command, Board* userBoard) {
+	/*
+	 * should be completed
+	 */
+	printf("%d", userBoard->board_size); /* only for the make to pass, should be removed later on. */
+	free(command);
+}

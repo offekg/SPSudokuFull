@@ -8,7 +8,3 @@ void checkEOF(){
 		exit(EXIT_FAILURE);
 	}
 }
-
-void printBoard(char[][] suduko){
-
-}
