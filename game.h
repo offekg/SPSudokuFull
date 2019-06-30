@@ -25,7 +25,7 @@ typedef struct board_t{
 Board* create_blank_board(int boardSize,int blockRows, int blockCols);
 
 void generate_user_board(Board *originalBoard);
-void execute_command(Command* command, Board* userBoard);
+void execute_command(Command* command, Board* board);
 void createCell(Cell* cell,int val);
 void destroyCell(Cell* cell);
 void destroyBoard(Board* b);

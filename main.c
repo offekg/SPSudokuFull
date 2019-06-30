@@ -68,21 +68,13 @@ void board_test(){
 
 }
 
-int main(int argc, char *argv[]){
-	int seed = atoi(argv[1]);
-	printf("%d", argc);
-	SP_BUFF_SET();
-	srand(seed);
-	printf("Starting");
-	board_test();
-
-	return 0;
-}
-
-
 int real_main(){
 	Command* command;
 	char userInput[MAX_COMMAND_SIZE] = { 0 };
+	Board* board;
+	board = create_blank_board(9,3,3);
+	generate_user_board(board);
+	printBoard(board,0);
 	/* Board* solvedBoard = generateRandomBoard();
 	Board* userBoard = create_user_board(solvedBoard); */
 
@@ -106,8 +98,19 @@ int real_main(){
 			 */
 			continue;
 		}
-		/*execute_command(command, userBoard);*/
+		execute_command(command, board);
 	}
-
+	destroyBoard(board);
 	return 0;
 }
+
+
+int main(int argc, char *argv[]){
+	int seed = atoi(argv[1]);
+	printf("%d", argc);
+	SP_BUFF_SET();
+	srand(seed);
+	printf("Starting");
+	return real_main();
+}
+

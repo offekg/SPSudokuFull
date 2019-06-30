@@ -165,14 +165,74 @@ void generate_user_board(Board* board){
 			board->current_board[row][col].value = board->solution[row][col].value;
 			board->current_board[row][col].isFixed = 1;
 			fixedCells--;
+			board->num_empty_cells_current--;
 		}
 	}
 }
 
-void execute_command(Command* command, Board* userBoard) {
-	/*
-	 * should be completed
-	 */
-	printf("%d", userBoard->board_size); /* only for the make to pass, should be removed later on. */
+void execute_command(Command* command, Board* board) {
+	int row, col, inserted_val, i, j;
+	switch(command->id) {
+		case SET:
+			if(board->num_empty_cells_current == 0) {
+				break;
+			}
+			row = command->params[0] - 1;
+			col = command->params[1] - 1;
+			inserted_val = command->params[2];
+			if(board->current_board[row][col].isFixed == 1) {
+				printf("Error: cell is fixed\n");
+				break;
+			}
+			if(check_valid_value(board, inserted_val, row, col, 0) == 1) {
+				if(inserted_val == 0 && board->current_board[row][col].value != 0) {
+					board->num_empty_cells_current++;
+				} else {
+					if(inserted_val != 0 && board->current_board[row][col].value == 0){
+						board->num_empty_cells_current--;
+					}
+				}
+				board->current_board[row][col].value = inserted_val;
+				if(board->num_empty_cells_current == 0) {
+					printf("Puzzle solved successfully\n");
+				} else {
+					printBoard(board, 0);
+				}
+			}
+			else {
+				printf("Error: value is invalid\n");
+				break;
+			}
+			break;
+		case HINT:
+			if(board->num_empty_cells_current == 0) {
+				break;
+			}
+			row = command->params[0] - 1;
+		    col = command->params[1] - 1;
+		    printf("Hint: set cell to %d\n", board->solution[row][col].value);
+		    break;
+		case RESTART:
+			board->num_empty_cells_current = board->board_size*board->board_size;
+			board->num_empty_cells_solution = board->board_size*board->board_size;
+			for(i = 0; i < board->board_size; i++){
+				for(j = 0; j < board->board_size; j++){
+					createCell(&board->solution[i][j],0);
+					createCell(&board->current_board[i][j],0);
+				}
+			}
+
+			generate_user_board(board);
+			printBoard(board,0);
+			break;
+		case EXIT:
+			free(command);
+			destroyBoard(board);
+			exit(EXIT_SUCCESS);
+			break;
+		default :
+		    printf("Error: invalid command\n");
+		    break;
+	}
 	free(command);
 }
