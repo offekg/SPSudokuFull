@@ -13,7 +13,7 @@ typedef struct cell_t{
 
 typedef struct board_t{
 	Cell** current_board;
-	Cell ** solution;
+	Cell** solution;
 	int board_size; /* number of rows and columns of game board */
 	int block_rows;
 	int block_cols;
