@@ -61,7 +61,15 @@ void board_test(){
 	b->current_board[0][4].value = 1;
 	printf("backtrack result: %d\n",backtracking_solution(b, 0));
 	printBoard(b, 0);*/
+
+	b->current_board[7][1].value = 5;
+	printf("validating\n");
+	validate(b);
+	printBoard(b,1);
+	printBoard(b,0);
 	destroyBoard(b);
+	printf("Good bye");
+
 	/*
 	destroyCell(c);
 	*/

@@ -70,20 +70,17 @@ Board* create_blank_board(int boardSize,int blockRows, int blockCols){
 	return board;
 }
 
-void destroyBoard(Board* b){
-	int i, j;
-	for(i = 0; i < b->board_size; i++){
-		for(j = 0; j < b->board_size; j++){
-			destroyCell(&(b->current_board)[i][j]);
-			printf("freed cell %d,%d from current\n",i,j);
-			destroyCell(&(b->solution)[i][j]);
-			printf("freed cell %d,%d from solution\n",i,j);
-		}
+void destroy_game_board(Cell** board, int size){
+	int i;
+	for(i = 0; i < size; i++){
+		free(board[i]);
 	}
-	printf("Succeffully freed all cells");
-	free(b->current_board);
-	free(b->solution);
-	printf("Succeffully freed all boards");
+	free(board);
+}
+
+void destroyBoard(Board* b){
+	destroy_game_board(b->current_board, b->board_size);
+	destroy_game_board(b->solution, b->board_size);
 }
 
 
@@ -235,4 +232,42 @@ void execute_command(Command* command, Board* board) {
 		    break;
 	}
 	free(command);
+}
+
+/*
+ * Creates and returns a duplicate of a given game_board. (the actual matrix of cells, not Board).
+ */
+Cell** copy_game_board(Cell** game_board, int board_size){
+	int i, j;
+	Cell** copy;
+	if((copy = (Cell**) malloc(board_size*sizeof(Cell*))) == NULL){
+		fprintf(stderr,"%s",MALLOC_ERROR);
+		return NULL;
+	}
+	for(i = 0; i < board_size; i++){
+		copy[i] = (Cell*) malloc(board_size*sizeof(Cell));
+		for(j = 0; j < board_size; j++){
+			copy[i][j].value = game_board[i][j].value;
+			copy[i][j].isFixed = game_board[i][j].isFixed;
+		}
+	}
+	return copy;
+}
+
+void validate(Board* b){
+	Cell** current_copy = copy_game_board(b->current_board, b->board_size);
+	int empty_cells_copy = b->num_empty_cells_current;
+
+	int solvable = backtracking_solution(b, 0);
+	if( solvable == 0){
+		printf("Validation failed: board is unsolvable\n");
+		b->current_board = current_copy;
+		b->num_empty_cells_current = empty_cells_copy;
+	}
+	else{
+		printf("Validation passed: board is solvable\n");
+		destroy_game_board(b->solution, b->board_size);
+		b->solution = b->current_board;
+		b->current_board = current_copy;
+	}
 }

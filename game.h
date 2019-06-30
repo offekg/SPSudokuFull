@@ -23,13 +23,16 @@ typedef struct board_t{
 
 
 Board* create_blank_board(int boardSize,int blockRows, int blockCols);
+Cell** copy_game_board(Cell** game_board, int board_size);
 
 void generate_user_board(Board *originalBoard);
 void execute_command(Command* command, Board* board);
 void createCell(Cell* cell,int val);
 void destroyCell(Cell* cell);
+void destroy_game_board(Cell** board, int size);
 void destroyBoard(Board* b);
 void printBoard(Board* b, int type);
+void validate(Board* b);
 
 
 
