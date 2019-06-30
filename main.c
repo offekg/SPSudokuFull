@@ -13,9 +13,8 @@
 
 
 void board_test(){
-	//int i, j;
 	Board* b;
-	//Board* b2;
+	/*
 	Cell* c = (Cell*) malloc(sizeof(Cell));
 	createCell(c,5);
 	printf("Cell's value: %d, Cell's fixed: %d.\n",c->value,c->isFixed);
@@ -24,7 +23,7 @@ void board_test(){
 	printf("after change: Cell's value: %d, Cell's fixed: %d.\n",c->value,c->isFixed);
 	destroyCell(c);
 
-	/*b2 = createBoard(6,2,3);
+	b2 = createBoard(6,2,3);
 	printf("created b2\n");
 	for(i = 0; i < 6; i++){
 		for(j = 0; j < 6; j++){
@@ -63,12 +62,15 @@ void board_test(){
 	printf("backtrack result: %d\n",backtracking_solution(b, 0));
 	printBoard(b, 0);*/
 	destroyBoard(b);
+	/*
 	destroyCell(c);
+	*/
 
 }
 
 int main(int argc, char *argv[]){
 	int seed = atoi(argv[1]);
+	printf("%d", argc);
 	SP_BUFF_SET();
 	srand(seed);
 	printf("Starting");
@@ -81,8 +83,8 @@ int main(int argc, char *argv[]){
 int real_main(){
 	Command* command;
 	char userInput[MAX_COMMAND_SIZE] = { 0 };
-	//Board* solvedBoard = generateRandomBoard();
-	//Board* userBoard = create_user_board(solvedBoard);
+	/* Board* solvedBoard = generateRandomBoard();
+	Board* userBoard = create_user_board(solvedBoard); */
 
 
 	while(1){
@@ -104,7 +106,7 @@ int real_main(){
 			 */
 			continue;
 		}
-		//execute_command(command, userBoard);
+		/*execute_command(command, userBoard);*/
 	}
 
 	return 0;

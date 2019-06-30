@@ -23,7 +23,9 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random){
 	else
 		game_board = b->current_board;
 
-	//check for exiting cell with same value in same row or collumn
+	/*
+	 * check for exiting cell with same value in same row or column
+	 */
 	for( i = 0; i < b->board_size; i++ ){
 		if(game_board[row][i].value == value)
 			return 0;
@@ -31,7 +33,9 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random){
 			return 0;
 	}
 
-	//check for exiting cell with same value in same block
+	/*
+	 * check for exiting cell with same value in same block
+	 */
 	block_start_row = (row/b->block_rows) * b->block_rows;
 	block_start_col = (col/b->block_cols) * b->block_cols;
 	for( i = block_start_row; i < (block_start_row + b->block_rows); i++){
@@ -59,7 +63,7 @@ int* generate_options(Board* b, int row, int col, int is_random){
 	options = (int*) malloc(10 * sizeof(int));
 	for(value = 1; value <= b->board_size; value++){
 		if(check_valid_value(b,value,row,col,is_random) == 1){
-			//printf("  value %d is legal.\n",value);
+			/* printf("  value %d is legal.\n",value); */
 			count++;
 			options[count] = value;
 		}
@@ -105,14 +109,14 @@ int backtracking_solution(Board* b, int is_random){
 		game_board = b->current_board;
 		relevent_empty_cells = &(b->num_empty_cells_current);
 	}
-	//======================================
-	if( *relevent_empty_cells == 0 )  //Stopping condition - if relevent board has no more empty cells, return success
+	/* ====================================== */
+	if( *relevent_empty_cells == 0 )  /* Stopping condition - if relevent board has no more empty cells, return success */
 		return 1;
 
-	for( i = 0; i < b->board_size; i++ ){         //find first empty cell
+	for( i = 0; i < b->board_size; i++ ){         /* find first empty cell */
 		for( j = 0; j < b->board_size; j++ ){
-			if( (game_board[i][j].value == 0) && (game_board[i][j].isFixed == 0) ){ //do we need to check fixed?
-				//printf("Checking options for %d,%d\n",i,j);
+			if( (game_board[i][j].value == 0) && (game_board[i][j].isFixed == 0) ){ /* do we need to check fixed? */
+				/* printf("Checking options for %d,%d\n",i,j); */
 				options = generate_options(b, i, j, is_random);
 
 				num_options = options[0];
@@ -124,21 +128,21 @@ int backtracking_solution(Board* b, int is_random){
 							index_chosen = 1;
 					else
 						index_chosen = k;
-					//printf("  there are %d options left in %d,%d.\n", cur_num_options,i,j);
+					/* printf("  there are %d options left in %d,%d.\n", cur_num_options,i,j); */
 					game_board[i][j].value = options[index_chosen];
 					*relevent_empty_cells -= 1;
 					if( backtracking_solution(b,is_random) == 1 ){
 						free(options);
 						return 1;
 					}
-					//else means failed to find solution with [i][j] = options[index_chosen].
+					/* else means failed to find solution with [i][j] = options[index_chosen]. */
 					*relevent_empty_cells += 1;
 					if(is_random == 1)
 						remove_option(options, index_chosen);
 				}
-					//No legal solution for current state of board. Will backtrack.
+					/* No legal solution for current state of board. Will backtrack. */
 					game_board[i][j].value = 0;
-					//printf("Backtracking from %d,%d\n",i,j);
+					/* printf("Backtracking from %d,%d\n",i,j); */
 					free(options);
 					return 0;
 			}

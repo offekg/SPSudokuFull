@@ -29,8 +29,8 @@ void destroyCell(Cell* cell){
  */
 Board* create_blank_board(int boardSize,int blockRows, int blockCols){
 	int i, j;
-	//int** solution;
-	//int total_size = boardSize*boardSize;
+	/* int** solution;
+	int total_size = boardSize*boardSize; */
 	Board* board;
 	Cell** solution;
 	Cell** current;
@@ -97,9 +97,12 @@ void printCell(Cell* c){
 			printf("   ");
 }
 
+/*
+
 void print_row(Cell** board){
 
 }
+*/
 
 /*
  * Prints the given board.
@@ -156,9 +159,8 @@ void generate_user_board(Board* board){
 	backtracking_solution(board, 1);
 
 	while( fixedCells > 0 ){
-		printf("fixed cells: %d\n",fixedCells);
-		row = rand() % (board->board_size + 1);
-		col = rand() % (board->board_size + 1);
+		row = rand() % (board->board_size);
+		col = rand() % (board->board_size);
 		if(board->current_board[row][col].isFixed == 0){
 			board->current_board[row][col].value = board->solution[row][col].value;
 			board->current_board[row][col].isFixed = 1;
