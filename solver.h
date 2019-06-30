@@ -4,7 +4,7 @@
 #include "game.h"
 
 Board* generateRandomBoard();
-
+int backtracking_solution(Board* b, int is_random);
 
 
 
