@@ -76,16 +76,13 @@ void board_test(){
 
 }
 
-int real_main(){
+int game_runner(){
 	Command* command;
 	char userInput[MAX_COMMAND_SIZE] = { 0 };
 	Board* board;
 	board = create_blank_board(9,3,3);
 	generate_user_board(board);
 	printBoard(board,0);
-	/* Board* solvedBoard = generateRandomBoard();
-	Board* userBoard = create_user_board(solvedBoard); */
-
 
 	while(1){
 		if (fgets(userInput, MAX_COMMAND_SIZE, stdin) == NULL) {
@@ -115,10 +112,9 @@ int real_main(){
 
 int main(int argc, char *argv[]){
 	int seed = atoi(argv[1]);
-	printf("%d", argc);
 	SP_BUFF_SET();
 	srand(seed);
 	printf("Starting");
-	return real_main();
+	return game_runner();
 }
 

@@ -201,6 +201,9 @@ void execute_command(Command* command, Board* board) {
 				break;
 			}
 			break;
+		case VALIDATE:
+			validate(board);
+			break;
 		case HINT:
 			if(board->num_empty_cells_current == 0) {
 				break;
@@ -225,6 +228,7 @@ void execute_command(Command* command, Board* board) {
 		case EXIT:
 			free(command);
 			destroyBoard(board);
+			printf("Exiting…\n");
 			exit(EXIT_SUCCESS);
 			break;
 		default :
@@ -269,5 +273,6 @@ void validate(Board* b){
 		destroy_game_board(b->solution, b->board_size);
 		b->solution = b->current_board;
 		b->current_board = current_copy;
+		b->num_empty_cells_current = empty_cells_copy;
 	}
 }

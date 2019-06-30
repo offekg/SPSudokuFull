@@ -152,7 +152,3 @@ int backtracking_solution(Board* b, int is_random){
 	return 1;
 }
 
-Board* generateRandomBoard() {
-	return NULL;
-}
-
