@@ -18,6 +18,9 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random){
 	int block_start_row, block_start_col;
 	Cell** game_board;
 
+	if(value > b->board_size || value < 0)
+		return 0;
+
 	if( is_random == 1 )
 		game_board = b->solution;
 	else
@@ -110,10 +113,12 @@ int backtracking_solution(Board* b, int is_random){
 		relevent_empty_cells = &(b->num_empty_cells_current);
 	}
 	/* ====================================== */
-	if( *relevent_empty_cells == 0 )  /* Stopping condition - if relevent board has no more empty cells, return success */
+	 /* Stopping condition - if relevent board has no more empty cells, return success */
+	if( *relevent_empty_cells == 0 )
 		return 1;
 
-	for( i = 0; i < b->board_size; i++ ){         /* find first empty cell */
+	/* find first empty cell, find options to fill it and try them */
+	for( i = 0; i < b->board_size; i++ ){
 		for( j = 0; j < b->board_size; j++ ){
 			if( (game_board[i][j].value == 0) && (game_board[i][j].isFixed == 0) ){ /* do we need to check fixed? */
 				/* printf("Checking options for %d,%d\n",i,j); */
@@ -128,21 +133,19 @@ int backtracking_solution(Board* b, int is_random){
 							index_chosen = 1;
 					else
 						index_chosen = k;
-					/* printf("  there are %d options left in %d,%d.\n", cur_num_options,i,j); */
 					game_board[i][j].value = options[index_chosen];
 					*relevent_empty_cells -= 1;
 					if( backtracking_solution(b,is_random) == 1 ){
 						free(options);
 						return 1;
 					}
-					/* else means failed to find solution with [i][j] = options[index_chosen]. */
+					/* if code reaches here it means it failed to find solution with [i][j] = options[index_chosen]. */
 					*relevent_empty_cells += 1;
 					if(is_random == 1)
 						remove_option(options, index_chosen);
 				}
 					/* No legal solution for current state of board. Will backtrack. */
 					game_board[i][j].value = 0;
-					/* printf("Backtracking from %d,%d\n",i,j); */
 					free(options);
 					return 0;
 			}

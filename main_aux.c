@@ -4,7 +4,7 @@
 
 void checkEOF(){
 	if (feof(stdin)) {
-		printf("Exiting…\n");
+		printf("Exiting...\n");
 		exit(EXIT_FAILURE);
 	}
 }

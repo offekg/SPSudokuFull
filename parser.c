@@ -8,7 +8,11 @@
 #define DELIMITER " \t\r\n"
 #define MALLOC_ERROR "Error: malloc has failed\n"
 
-/* You should be using the strtok function using the ' \t\r\n' delimiter https://www.codingame.com/playgrounds/14213/how-to-play-with-strings-in-c/string-split */
+
+/*
+ * Scans input from user for number of wanted fixed cells in the board.
+ * returns it when the input is legal.
+ */
 int get_fixed_cells() {
 	int fixedCells;
 	if (scanf("%d", &fixedCells) != 1) {
@@ -43,6 +47,9 @@ int get_command_id(char *type) {
 	return -1;
 }
 
+/*
+ *Creates a Command struct out of the user input.
+ */
 Command* create_new_command_object(int cmd_id, int params[3]) {
 	int i;
 	Command* cmd = (Command*) malloc(sizeof(Command));
@@ -59,6 +66,10 @@ Command* create_new_command_object(int cmd_id, int params[3]) {
 	return cmd;
 }
 
+/*
+ * Gets given input from the user.
+ * Parses it to a specific command, including the paramaters.
+ */
 Command* parse_command(char userInput[]) {
 	int cmd_id;
 	int param_counter = 0;

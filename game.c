@@ -10,17 +10,13 @@
 #define MALLOC_ERROR "Error: malloc has failed"
 
 /*
+ * Gets a pointer to a cell, and initializes it with given value.
  * fixed == 1 means cell is fixed; fixed == 0 means cell is not fixed
+ * Initializes as non fixed cell.
  */
 void createCell(Cell* cell,int val){
 	cell->value = val;
 	cell->isFixed = 0;
-}
-
-void destroyCell(Cell* cell){
-	if(!cell)
-		return;
-	free(cell);
 }
 
 /*
@@ -29,8 +25,6 @@ void destroyCell(Cell* cell){
  */
 Board* create_blank_board(int boardSize,int blockRows, int blockCols){
 	int i, j;
-	/* int** solution;
-	int total_size = boardSize*boardSize; */
 	Board* board;
 	Cell** solution;
 	Cell** current;
@@ -70,6 +64,9 @@ Board* create_blank_board(int boardSize,int blockRows, int blockCols){
 	return board;
 }
 
+/*
+ * Destroys properly a given game board, freeing all allocated resources.
+ */
 void destroy_game_board(Cell** board, int size){
 	int i;
 	for(i = 0; i < size; i++){
@@ -78,12 +75,18 @@ void destroy_game_board(Cell** board, int size){
 	free(board);
 }
 
+/*
+ * Destroys properly a given Board, freeing all allocated resources.
+ */
 void destroyBoard(Board* b){
 	destroy_game_board(b->current_board, b->board_size);
 	destroy_game_board(b->solution, b->board_size);
 }
 
 
+/*
+ * Prints a single cell, acording to the sudoku board format.
+ */
 void printCell(Cell* c){
 	if(c->isFixed == 0 && c->value != 0)
 		printf(" %d ",c->value);
@@ -94,17 +97,11 @@ void printCell(Cell* c){
 			printf("   ");
 }
 
-/*
-
-void print_row(Cell** board){
-
-}
-*/
 
 /*
  * Prints the given board.
- * if type == 1: prints the boards known solution.
- * otherwise, prints boards current state board.
+ * if type == 1: prints the board's known solution.
+ * otherwise, prints board's current state board.
  */
 void printBoard(Board* b, int type){
 	int i, j;
@@ -141,9 +138,9 @@ void printBoard(Board* b, int type){
 }
 
 /*
- * Generates a agme board with fixed cells accourding to user input.
+ * Generates a game board with fixed cells according to user input.
  *
- * Gets an already created blank Board.
+ * Gets a pointer to an already created blank Board.
  * generates a randomized full legal board and stores it in solution.
  */
 void generate_user_board(Board* board){
@@ -167,77 +164,6 @@ void generate_user_board(Board* board){
 	}
 }
 
-void execute_command(Command* command, Board* board) {
-	int row, col, inserted_val, i, j;
-	switch(command->id) {
-		case SET:
-			if(board->num_empty_cells_current == 0) {
-				break;
-			}
-			row = command->params[0] - 1;
-			col = command->params[1] - 1;
-			inserted_val = command->params[2];
-			if(board->current_board[row][col].isFixed == 1) {
-				printf("Error: cell is fixed\n");
-				break;
-			}
-			if(check_valid_value(board, inserted_val, row, col, 0) == 1) {
-				if(inserted_val == 0 && board->current_board[row][col].value != 0) {
-					board->num_empty_cells_current++;
-				} else {
-					if(inserted_val != 0 && board->current_board[row][col].value == 0){
-						board->num_empty_cells_current--;
-					}
-				}
-				board->current_board[row][col].value = inserted_val;
-				if(board->num_empty_cells_current == 0) {
-					printf("Puzzle solved successfully\n");
-				} else {
-					printBoard(board, 0);
-				}
-			}
-			else {
-				printf("Error: value is invalid\n");
-				break;
-			}
-			break;
-		case VALIDATE:
-			validate(board);
-			break;
-		case HINT:
-			if(board->num_empty_cells_current == 0) {
-				break;
-			}
-			row = command->params[0] - 1;
-		    col = command->params[1] - 1;
-		    printf("Hint: set cell to %d\n", board->solution[row][col].value);
-		    break;
-		case RESTART:
-			board->num_empty_cells_current = board->board_size*board->board_size;
-			board->num_empty_cells_solution = board->board_size*board->board_size;
-			for(i = 0; i < board->board_size; i++){
-				for(j = 0; j < board->board_size; j++){
-					createCell(&board->solution[i][j],0);
-					createCell(&board->current_board[i][j],0);
-				}
-			}
-
-			generate_user_board(board);
-			printBoard(board,0);
-			break;
-		case EXIT:
-			free(command);
-			destroyBoard(board);
-			printf("Exiting…\n");
-			exit(EXIT_SUCCESS);
-			break;
-		default :
-		    printf("Error: invalid command\n");
-		    break;
-	}
-	free(command);
-}
-
 /*
  * Creates and returns a duplicate of a given game_board. (the actual matrix of cells, not Board).
  */
@@ -258,6 +184,12 @@ Cell** copy_game_board(Cell** game_board, int board_size){
 	return copy;
 }
 
+/*
+ * For use in user comand "validate".
+ * Checks that the current_board of b is solvable.
+ * if it is - sets b->solution to be the found solution.
+ * if not - prints a message accordingly.
+ */
 void validate(Board* b){
 	Cell** current_copy = copy_game_board(b->current_board, b->board_size);
 	int empty_cells_copy = b->num_empty_cells_current;
@@ -276,3 +208,102 @@ void validate(Board* b){
 		b->num_empty_cells_current = empty_cells_copy;
 	}
 }
+
+/*
+ * For use when user enters command set.
+ * If legal and possible, enters inserted_value in to cell in given column and row.
+ * If command was legal, prints the new board.
+ * If also the board is now full - prints that the user has solved the puzzle.
+ */
+void set(Board* board, int col, int row, int inserted_val){
+	if(col < 0 || row < 0 || board->num_empty_cells_current == 0){
+		printf("Error: invalid command\n");
+		return;
+	}
+	if(board->current_board[row][col].isFixed == 1) {
+		printf("Error: cell is fixed\n");
+		return;
+	}
+	if(inserted_val == 0 || check_valid_value(board, inserted_val, row, col, 0) == 1) {
+		if(inserted_val == 0 && board->current_board[row][col].value != 0) {
+			board->num_empty_cells_current++;
+		} else {
+			if(inserted_val != 0 && board->current_board[row][col].value == 0){
+				board->num_empty_cells_current--;
+			}
+		}
+		board->current_board[row][col].value = inserted_val;
+		if(board->num_empty_cells_current == 0) {
+			printf("Puzzle solved successfully\n");
+		} else {
+				printBoard(board, 0);
+		}
+	}
+	else {
+		printf("Error: value is invalid\n");
+		return;
+	}
+	return;
+}
+
+/*
+ * For use when user enters command restart.
+ * restarts the game board from scratch, generating a new puzzle.
+ */
+void restart(Board* board){
+	int i, j;
+	board->num_empty_cells_current = board->board_size*board->board_size;
+	board->num_empty_cells_solution = board->board_size*board->board_size;
+	for(i = 0; i < board->board_size; i++){
+		for(j = 0; j < board->board_size; j++){
+			createCell(&board->solution[i][j],0);
+			createCell(&board->current_board[i][j],0);
+		}
+	}
+
+	generate_user_board(board);
+	printBoard(board,0);
+}
+
+
+/*
+ *Recieves given command from user, and implements it appropriately.
+ */
+void execute_command(Command* command, Board* board) {
+	int row, col, inserted_val;
+	switch(command->id) {
+		case SET:
+			col = command->params[0] - 1;
+			row = command->params[1] - 1;
+			inserted_val = command->params[2];
+			set(board, col, row, inserted_val);
+			break;
+		case VALIDATE:
+			validate(board);
+			break;
+		case HINT:
+			row = command->params[1] - 1;
+		    col = command->params[0] - 1;
+		    if(col < 0 || row < 0 || board->num_empty_cells_current == 0){
+		    	printf("Error: invalid command\n");
+		    	break;
+		    }
+		    printf("Hint: set cell to %d\n", board->solution[row][col].value);
+		    break;
+		case RESTART:
+			restart(board);
+			break;
+		case EXIT:
+			free(command);
+			destroyBoard(board);
+			printf("Exiting...\n");
+			exit(EXIT_SUCCESS);
+			break;
+		default :
+		    printf("Error: invalid command\n");
+		    break;
+	}
+	free(command);
+}
+
+
