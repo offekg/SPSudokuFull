@@ -8,6 +8,7 @@
 #include "parser.h"
 #include "solver.h"
 #include "SPBufferset.h"
+#include "main_aux.h"
 
 #define MAX_COMMAND_SIZE 1026
 
@@ -27,6 +28,7 @@ int main(int argc, char *argv[]){
 	printBoard(board,0);
 
 	while(1){
+		checkEOF();
 		if (fgets(userInput, MAX_COMMAND_SIZE, stdin) == NULL) {
 			if (ferror(stdin)) {
 				printf("Error: fgets has failed\n");

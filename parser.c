@@ -4,6 +4,7 @@
 
 #include "main_aux.h"
 #include "parser.h"
+#include "game.h"
 
 #define DELIMITER " \t\r\n"
 #define MALLOC_ERROR "Error: malloc has failed\n"
@@ -13,15 +14,15 @@
  * Scans input from user for number of wanted fixed cells in the board.
  * returns it when the input is legal.
  */
-int get_fixed_cells() {
+int get_fixed_cells(Board* board) {
 	int fixedCells;
 	if (scanf("%d", &fixedCells) != 1) {
-		checkEOF();
+		checkEOF(board);
 	}
 	while (fixedCells < 0 || fixedCells > 80){
 		printf("Error: invalid number of cells to fill (should be between 0 and 80)\n");
 		if (scanf("%d", &fixedCells) != 1) {
-			checkEOF();
+			checkEOF(board);
 		}
 	}
 	return fixedCells;

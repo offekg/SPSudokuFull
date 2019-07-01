@@ -148,7 +148,7 @@ void generate_user_board(Board* board){
 	int row, col;
 
 	printf("Please enter the number of cells to fill [0-80]:\n");
-	fixedCells = get_fixed_cells();
+	fixedCells = get_fixed_cells(board);
 
 	backtracking_solution(board, 1);
 
