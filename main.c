@@ -43,13 +43,15 @@ int game_runner(){
 
 
 int main(int argc, char *argv[]){
-	int seed = atoi(argv[1]);
-	SP_BUFF_SET();
-	srand(seed);
-
 	Command* command;
-	char userInput[MAX_COMMAND_SIZE] = { 0 };
 	Board* board;
+	char userInput[MAX_COMMAND_SIZE] = { 0 };
+
+	if(argc > 1)
+		srand(atoi(argv[1]));
+	SP_BUFF_SET();
+
+
 	board = create_blank_board(9,3,3);
 	generate_user_board(board);
 	printBoard(board,0);
