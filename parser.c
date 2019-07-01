@@ -77,6 +77,8 @@ Command* parse_command(char userInput[]) {
 	int params[3] = { 0 };
 
 	char *token = strtok(userInput, DELIMITER);
+
+	checkEOF(board);
 	if (!token) {
 		/*
 		 * Failed to parse any input from the user, hence continuing.

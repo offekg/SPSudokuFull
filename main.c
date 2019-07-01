@@ -28,7 +28,6 @@ int main(int argc, char *argv[]){
 	printBoard(board,0);
 
 	while(1){
-		checkEOF(board);
 		if (fgets(userInput, MAX_COMMAND_SIZE, stdin) == NULL) {
 			if (ferror(stdin)) {
 				printf("Error: fgets has failed\n");
