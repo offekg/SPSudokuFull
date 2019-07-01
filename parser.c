@@ -53,7 +53,7 @@ int get_command_id(char *type) {
 /*
  *Creates a Command struct out of the user input.
  */
-Command* create_new_command_object(int cmd_id, int params[3]) {
+Command* create_new_command_object(int cmd_id, int params[3], int param_counter) {
 	int i;
 	Command* cmd = (Command*) malloc(sizeof(Command));
 	if (cmd == NULL) {
@@ -62,6 +62,7 @@ Command* create_new_command_object(int cmd_id, int params[3]) {
 	}
 
 	cmd->id = cmd_id;
+	cmd->param_counter = param_counter;
 
 	for (i = 0; i < 3; i++) {
 		cmd->params[i] = params[i];
@@ -82,7 +83,7 @@ Command* parse_command(char userInput[]) {
 
 	if (feof(stdin) && !token) {
 		cmd_id = EXIT;
-		return create_new_command_object(cmd_id, params);
+		return create_new_command_object(cmd_id, params, 0);
 	}
 
 	if (!token) {
@@ -104,5 +105,5 @@ Command* parse_command(char userInput[]) {
 		token = strtok(NULL, DELIMITER);
 	}
 
-	return create_new_command_object(cmd_id, params);
+	return create_new_command_object(cmd_id, params, param_counter);
 }

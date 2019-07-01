@@ -17,6 +17,7 @@ enum command_id {
 typedef struct command_t{
 	int id;
 	int params[3];
+	int param_counter;
 } Command;
 
 /*
