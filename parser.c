@@ -78,7 +78,11 @@ Command* parse_command(char userInput[]) {
 
 	char *token = strtok(userInput, DELIMITER);
 
-	checkEOF(board);
+	if (feof(stdin)) {
+		cmd_id = EXIT;
+		return create_new_command_object(cmd_id, params);
+	}
+
 	if (!token) {
 		/*
 		 * Failed to parse any input from the user, hence continuing.
