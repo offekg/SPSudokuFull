@@ -215,8 +215,8 @@ void validate(Board* b){
  * If command was legal, prints the new board.
  * If also the board is now full - prints that the user has solved the puzzle.
  */
-void set(Board* board, int col, int row, int inserted_val, int param_counter){
-	if(col < 0 || row < 0 || board->num_empty_cells_current == 0 || param_counter < 3){
+void set(Board* board, int col, int row, int inserted_val){
+	if(col < 0 || row < 0 || board->num_empty_cells_current == 0){
 		printf("Error: invalid command\n");
 		return;
 	}
@@ -233,11 +233,11 @@ void set(Board* board, int col, int row, int inserted_val, int param_counter){
 			}
 		}
 		board->current_board[row][col].value = inserted_val;
+		printBoard(board, 0);
 		if(board->num_empty_cells_current == 0) {
 			printf("Puzzle solved successfully\n");
-		} else {
-				printBoard(board, 0);
 		}
+
 	}
 	else {
 		printf("Error: value is invalid\n");
@@ -281,7 +281,7 @@ void execute_command(Command* command, Board* board) {
 			col = command->params[0] - 1;
 			row = command->params[1] - 1;
 			inserted_val = command->params[2];
-			set(board, col, row, inserted_val, command->param_counter);
+			set(board, col, row, inserted_val);
 			break;
 		case VALIDATE:
 			validate(board);
@@ -289,7 +289,7 @@ void execute_command(Command* command, Board* board) {
 		case HINT:
 			row = command->params[1] - 1;
 		    col = command->params[0] - 1;
-		    if(col < 0 || row < 0 || board->num_empty_cells_current == 0 || command->param_counter < 2){
+		    if(col < 0 || row < 0 || board->num_empty_cells_current == 0){
 		    	printf("Error: invalid command\n");
 		    	break;
 		    }
