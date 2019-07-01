@@ -82,7 +82,7 @@ int* generate_options(Board* b, int row, int col, int is_random){
  */
 void remove_option(int* options, int index_chosen){
 	int i;
-	for(i = index_chosen; i < options[0] - 1; i++){
+	for(i = index_chosen; i < options[0]; i++){
 		options[i] = options[i+1];
 	}
 	options[0]--;
@@ -133,6 +133,15 @@ int backtracking_solution(Board* b, int is_random){
 							index_chosen = 1;
 					else
 						index_chosen = k;
+
+					/*printf("num options for %d,%d: %d\n",i,j,cur_num_options);
+					printf("options: ");
+					for(l = 1; l <= cur_num_options; l++){
+						printf("%d ",options[l]);
+					}
+
+					printf("\n");*/
+
 					game_board[i][j].value = options[index_chosen];
 					*relevent_empty_cells -= 1;
 					if( backtracking_solution(b,is_random) == 1 ){
@@ -141,13 +150,17 @@ int backtracking_solution(Board* b, int is_random){
 					}
 					/* if code reaches here it means it failed to find solution with [i][j] = options[index_chosen]. */
 					*relevent_empty_cells += 1;
-					if(is_random == 1)
+					if(is_random == 1){
+						/*printf("***removing %d***\n",options[index_chosen]);*/
 						remove_option(options, index_chosen);
+					}
+
+
 				}
-					/* No legal solution for current state of board. Will backtrack. */
-					game_board[i][j].value = 0;
-					free(options);
-					return 0;
+				/* No legal solution for current state of board. Will backtrack. */
+				game_board[i][j].value = 0;
+				free(options);
+				return 0;
 			}
 		}
 	}
