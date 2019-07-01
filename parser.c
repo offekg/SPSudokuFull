@@ -21,9 +21,11 @@ int get_fixed_cells(Board* board) {
 	}
 	while (fixedCells < 0 || fixedCells > 80){
 		printf("Error: invalid number of cells to fill (should be between 0 and 80)\n");
+		printf("Please enter the number of cells to fill [0-80]:\n");
 		if (scanf("%d", &fixedCells) != 1) {
 			checkEOF(board);
 		}
+
 	}
 	return fixedCells;
 }

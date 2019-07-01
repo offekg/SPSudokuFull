@@ -93,8 +93,10 @@ void printBoard(Board* b, int type);
 Cell** copy_game_board(Cell** game_board, int board_size);
 
 
-
-
+/*
+ * Exits gracfully from game
+ */
+void exit_game(Board* board);
 
 
 #endif

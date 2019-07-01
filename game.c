@@ -265,6 +265,11 @@ void restart(Board* board){
 	printBoard(board,0);
 }
 
+void exit_game(Board* board){
+	destroyBoard(board);
+	printf("Exiting...\n");
+	exit(EXIT_SUCCESS);
+}
 
 /*
  *Recieves given command from user, and implements it appropriately.
@@ -295,9 +300,7 @@ void execute_command(Command* command, Board* board) {
 			break;
 		case EXIT:
 			free(command);
-			destroyBoard(board);
-			printf("Exiting...\n");
-			exit(EXIT_SUCCESS);
+			exit_game(board);
 			break;
 		default :
 		    printf("Error: invalid command\n");
