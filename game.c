@@ -81,6 +81,7 @@ void destroy_game_board(Cell** board, int size){
 void destroyBoard(Board* b){
 	destroy_game_board(b->current_board, b->board_size);
 	destroy_game_board(b->solution, b->board_size);
+	free(b);
 }
 
 
@@ -197,12 +198,14 @@ void validate(Board* b){
 	int solvable = backtracking_solution(b, 0);
 	if( solvable == 0){
 		printf("Validation failed: board is unsolvable\n");
+		free(b->current_board);
 		b->current_board = current_copy;
 		b->num_empty_cells_current = empty_cells_copy;
 	}
 	else{
 		printf("Validation passed: board is solvable\n");
 		destroy_game_board(b->solution, b->board_size);
+		free(b->solution);
 		b->solution = b->current_board;
 		b->current_board = current_copy;
 		b->num_empty_cells_current = empty_cells_copy;
