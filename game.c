@@ -153,8 +153,8 @@ void generate_user_board(Board* board){
 	backtracking_solution(board, 1);
 
 	while( fixedCells > 0 ){
-		row = rand() % (board->board_size);
 		col = rand() % (board->board_size);
+		row = rand() % (board->board_size);
 		if(board->current_board[row][col].isFixed == 0){
 			board->current_board[row][col].value = board->solution[row][col].value;
 			board->current_board[row][col].isFixed = 1;
