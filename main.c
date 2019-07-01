@@ -32,6 +32,8 @@ int main(int argc, char *argv[]){
 			if (ferror(stdin)) {
 				printf("Error: fgets has failed\n");
 			}
+			destroyBoard(board);
+			printf("Exiting...\n");
 			return 0;
 		}
 
