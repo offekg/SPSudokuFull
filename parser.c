@@ -80,7 +80,7 @@ Command* parse_command(char userInput[]) {
 
 	char *token = strtok(userInput, DELIMITER);
 
-	if (feof(stdin)) {
+	if (feof(stdin) && !token) {
 		cmd_id = EXIT;
 		return create_new_command_object(cmd_id, params);
 	}
