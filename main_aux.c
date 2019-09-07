@@ -10,3 +10,18 @@ void checkEOF(Board* board){
 		exit(EXIT_SUCCESS);
 	}
 }
+
+void clear_input_line(){
+	char c;
+	do{
+		c = fgetc(stdin);
+		if (ferror(stdin)) {
+			printf("Error: fgets has failed\n");
+			printf("Exiting...\n");
+			exit(0);
+		}
+	}
+	while(c != '\n' && c != EOF);
+	return;
+}
+

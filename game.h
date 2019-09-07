@@ -3,16 +3,27 @@
 
 #include "parser.h"
 
+
+typedef enum game_mode {
+	INIT_MODE, EDIT_MODE, SOLVE_MODE
+}game_mode;
+
+extern game_mode current_mode;
+extern int mark_errors;
+
+
 /*
  * Struct: Cell
  * 		Used to represent a cell in the board.
  *
  * 		value: an integer with the cell's current valuel
  * 		isFixed: represents if the cell's value is fixed or not. 1 means it's fixed, 0 means it's not.
+ * 		isError: represents if the cell's current value creates an error regarding another cell in the board.
  */
 typedef struct cell_t{
 	int value;
 	int isFixed;
+	int isError;
 
 } Cell;
 
@@ -34,8 +45,8 @@ typedef struct board_t{
 	Cell** current_board;
 	Cell** solution;
 	int board_size; /* number of rows and columns of game board */
-	int block_rows;
-	int block_cols;
+	int block_rows; /* m; number of rows in one block */
+	int block_cols; /* n; number of columns in one block */
 	int num_empty_cells_current;
 	int num_empty_cells_solution;
 } Board;
@@ -45,7 +56,7 @@ typedef struct board_t{
  * Receives dimensions of the wanted board and the blocks in the board.
  * Returns a pointer to a Board struct, with the current game board and solution board set to default (all zeros).
  */
-Board* create_blank_board(int boardSize,int blockRows, int blockCols);
+Board* create_blank_board(int blockRows, int blockCols);
 
 
 Cell** copy_game_board(Cell** game_board, int board_size);
@@ -91,6 +102,12 @@ void printBoard(Board* b, int type);
  * Creates and returns a duplicate of a given game_board. (the actual matrix of cells, not Board).
  */
 Cell** copy_game_board(Cell** game_board, int board_size);
+
+
+/*
+ * Prints to the prompt the opening greeting and initial instructions to the user.
+ */
+void opening_message();
 
 
 /*

@@ -10,6 +10,16 @@
 #define MALLOC_ERROR "Error: malloc has failed"
 
 /*
+ * Prints to the prompt the opening greeting and initial instructions to the user.
+ */
+void opening_message(){
+	printf("WELCOME TO THE GAME SUDOKU!\n\n\n");
+	printf("Plesae choose if you would like to edit a game board or solve an existing one.\n");
+	printf("Have fun!\n");
+}
+
+
+/*
  * Gets a pointer to a cell, and initializes it with given value.
  * fixed == 1 means cell is fixed; fixed == 0 means cell is not fixed
  * Initializes as non fixed cell.
@@ -23,7 +33,7 @@ void createCell(Cell* cell,int val){
  * Receives dimensions of the wanted board and the blocks in the board.
  * Returns a pointer to a Board struct, with the current game board and solution board set to default (all zeros).
  */
-Board* create_blank_board(int boardSize,int blockRows, int blockCols){
+Board* create_blank_board(int blockCols, int blockRows){
 	int i, j;
 	Board* board;
 	Cell** solution;
@@ -33,27 +43,27 @@ Board* create_blank_board(int boardSize,int blockRows, int blockCols){
 		fprintf(stderr,"%s",MALLOC_ERROR);
 		return NULL;
 	}
-	board->board_size = boardSize;
 	board->block_rows = blockRows;
 	board->block_cols = blockCols;
-	board->num_empty_cells_current = boardSize*boardSize;
-	board->num_empty_cells_solution = boardSize*boardSize;
+	board->board_size = blockCols*blockRows;
+	board->num_empty_cells_current = board->board_size*board->board_size;
+	board->num_empty_cells_solution = board->board_size*board->board_size;
 
 
-	if((solution = (Cell**) malloc(boardSize*sizeof(Cell*))) == NULL){
+	if((solution = (Cell**) malloc(board->board_size*sizeof(Cell*))) == NULL){
 			fprintf(stderr,"%s",MALLOC_ERROR);
 			free(board);
 			return NULL;
 		}
-	if((current = (Cell**) malloc(boardSize*sizeof(Cell*))) == NULL){
+	if((current = (Cell**) malloc(board->board_size*sizeof(Cell*))) == NULL){
 		fprintf(stderr,"%s",MALLOC_ERROR);
 		free(board);
 		return NULL;
 	}
-	for(i = 0; i < boardSize; i++){
-		solution[i] = (Cell*) malloc(boardSize*sizeof(Cell));
-		current[i] = (Cell*) malloc(boardSize*sizeof(Cell));
-		for(j = 0; j < boardSize; j++){
+	for(i = 0; i < board->board_size; i++){
+		solution[i] = (Cell*) malloc(board->board_size*sizeof(Cell));
+		current[i] = (Cell*) malloc(board->board_size*sizeof(Cell));
+		for(j = 0; j < board->board_size; j++){
 			createCell(&solution[i][j],0);
 			createCell(&current[i][j],0);
 		}
@@ -90,12 +100,12 @@ void destroyBoard(Board* b){
  */
 void printCell(Cell* c){
 	if(c->isFixed == 0 && c->value != 0)
-		printf(" %d ",c->value);
+		printf(" %2d ",c->value);
 	else
 		if(c->value != 0)
-			printf(".%d ",c->value);
+			printf(" %2d.",c->value);
 		else
-			printf("   ");
+			printf("    ");
 }
 
 
@@ -108,7 +118,8 @@ void printBoard(Board* b, int type){
 	int i, j;
 	Cell** board;
 	char* sep_row;
-	int total_row_length = (b->board_size * 3) + ((b->board_size / b->block_cols) * 2) + 1;
+	int total_row_length = (4* b->board_size) + b->block_rows + 1;
+	//int total_row_length = (b->board_size * 3) + ((b->board_size / b->block_cols) * 2) + 1;
 
 	if(type == 1)
 		board = b->solution;
@@ -128,7 +139,7 @@ void printBoard(Board* b, int type){
 			printf("%s",sep_row);
 		for( j = 0; j < b->board_size; j++){
 			if( j % b->block_cols == 0 )
-				printf("| ");
+				printf("|");
 			printCell(&(board[i][j]));
 		}
 		printf("|\n");
@@ -219,11 +230,11 @@ void validate(Board* b){
  */
 void set(Board* board, int col, int row, int inserted_val, int param_counter){
 	if(col < 0 || row < 0 || board->num_empty_cells_current == 0 || param_counter < 3){
-		printf("Error: invalid command\n");
+		printf("Error: Invalid Command\n");
 		return;
 	}
 	if(board->current_board[row][col].isFixed == 1) {
-		printf("Error: cell is fixed\n");
+		printf("Error: Cell is fixed\n");
 		return;
 	}
 	if(inserted_val == 0 || check_valid_value(board, inserted_val, row, col, 0) == 1) {
@@ -242,7 +253,7 @@ void set(Board* board, int col, int row, int inserted_val, int param_counter){
 
 	}
 	else {
-		printf("Error: value is invalid\n");
+		printf("Error: Value is invalid\n");
 		return;
 	}
 	return;
@@ -274,41 +285,55 @@ void exit_game(Board* board){
 }
 
 /*
+ * The function is called on when user enters the "solve" command.
+ * Function is availabe for all modes.
+ * Changes game mode to SOLVE_MODE if not already set to it.
+ * Tries to load the board saved in path if path is legal and if the file has a legal board on it.
+ *
+ */
+void solve(char** path){
+
+}
+
+
+
+/*
  *Recieves given command from user, and implements it appropriately.
  */
 void execute_command(Command* command, Board* board) {
-	int row, col, inserted_val;
+	int row = command->params[1] - 1;
+	int col = command->params[0] - 1;
+	int inserted_val = command->params[2];
+	//char* path = command->path_param;
+
 	switch(command->id) {
+		case SOLVE:
+			break;
 		case SET:
-			col = command->params[0] - 1;
-			row = command->params[1] - 1;
-			inserted_val = command->params[2];
 			set(board, col, row, inserted_val, command->param_counter);
 			break;
 		case VALIDATE:
 			validate(board);
 			break;
 		case HINT:
-			row = command->params[1] - 1;
-		    col = command->params[0] - 1;
 		    if(col < 0 || row < 0 || board->num_empty_cells_current == 0 || command->param_counter < 2){
 		    	printf("Error: invalid command\n");
 		    	break;
 		    }
 		    printf("Hint: set cell to %d\n", board->solution[row][col].value);
 		    break;
-		case RESTART:
+		case RESET:
 			restart(board);
 			break;
 		case EXIT:
-			free(command);
+			destroy_command_object(command);
 			exit_game(board);
 			break;
 		default :
-		    printf("Error: invalid command\n");
+		    printf("Error: Invalid Command\n");
 		    break;
 	}
-	free(command);
+	//free(command);   - gets freed in main now after used
 }
 
 
