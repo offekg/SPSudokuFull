@@ -12,6 +12,8 @@
 
 #define MAX_COMMAND_SIZE 256
 
+enum game_mode current_mode = INIT_MODE;
+int mark_errors = 1;
 
 void eventual_main(){
 	Command* command;
@@ -19,8 +21,6 @@ void eventual_main(){
 	char userInput[MAX_COMMAND_SIZE+2] = { 0 };
 
 	opening_message();
-	current_mode = INIT_MODE;
-	mark_errors = 1;
 	board = create_blank_board(2,4);
 	generate_user_board(board);
 	printBoard(board,0);
@@ -69,7 +69,6 @@ int main(int argc, char *argv[]){
 	if(argc > 1)
 		srand(atoi(argv[1]));
 	SP_BUFF_SET();
-
 	eventual_main();
 	return 0;
 }

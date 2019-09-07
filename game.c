@@ -9,6 +9,7 @@
 
 #define MALLOC_ERROR "Error: malloc has failed"
 
+Board* board = NULL;
 /*
  * Prints to the prompt the opening greeting and initial instructions to the user.
  */
@@ -119,7 +120,6 @@ void printBoard(Board* b, int type){
 	Cell** board;
 	char* sep_row;
 	int total_row_length = (4* b->board_size) + b->block_rows + 1;
-	//int total_row_length = (b->board_size * 3) + ((b->board_size / b->block_cols) * 2) + 1;
 
 	if(type == 1)
 		board = b->solution;
@@ -292,6 +292,10 @@ void exit_game(Board* board){
  *
  */
 void solve(char** path){
+	if(current_mode != SOLVE_MODE)
+		current_mode = SOLVE_MODE;
+	if(board)
+		destroyBoard(board);
 
 }
 
@@ -308,6 +312,7 @@ void execute_command(Command* command, Board* board) {
 
 	switch(command->id) {
 		case SOLVE:
+			solve(&(command->path_param));
 			break;
 		case SET:
 			set(board, col, row, inserted_val, command->param_counter);

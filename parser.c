@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 
 #include "main_aux.h"
@@ -67,7 +68,7 @@ Command* create_new_command_object(int cmd_id, int params[3], int param_counter,
 	cmd->id = cmd_id;
 	cmd->param_counter = param_counter;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 3; i++) {
 		cmd->params[i] = params[i];
 	}
 
@@ -122,7 +123,7 @@ int is_string_a_int(char** str, int length){
  * Otherwise, returns 0.
  */
 int check_command_availability(enum command_id cmd_id){
-	switch(cmd_id){
+	 switch(cmd_id){
 		/* always available: */
 		case SOLVE:
 		case EDIT:
@@ -168,13 +169,17 @@ int check_command_availability(enum command_id cmd_id){
 				return 0;
 			}
 			break;
+		case INVALID_COMMAND:
+			return 0;
+			break;
 	}
 	return 0;
 }
 
 /*
- * Gets given raw input from the user.
- * Parses it to a specific command, including the paramaters.
+ * Gets given raw input of command from the user.
+ * Parses it to a specific command (including it's paramaters), creates a command struct and returns it for execution.
+ * If encounters an error, prints a relevant message and returns Null.
  */
 Command* parse_command(char userInput[]) {
 	enum command_id cmd_id;
@@ -200,6 +205,10 @@ Command* parse_command(char userInput[]) {
 		return NULL;
 	}
 	cmd_id = get_command_id(token);
+	if(cmd_id == INVALID_COMMAND){
+		printf("Error: Invalid Command - No such command exists.\n");
+		return NULL;
+	}
 	if(!check_command_availability(cmd_id))
 		return NULL;
 
