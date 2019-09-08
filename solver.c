@@ -10,10 +10,11 @@
 /*
  * Checks if it is legal to enter value in the board[row][col].
  * if is_random == 1: checks solution board.
+ * if only_fixed == 1: checks only compared to fixed cells.
  * else: checks current board;
  * returns 1 if legal, 0 if not
  */
-int check_valid_value(Board* b, int value, int row, int col, int is_random){
+int check_valid_value(Board* b, int value, int row, int col, int is_random, int only_fixed){
 	int i, j;
 	int block_start_row, block_start_col;
 	Cell** game_board;
@@ -30,10 +31,19 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random){
 	 * check for exiting cell with same value in same row or column
 	 */
 	for( i = 0; i < b->board_size; i++ ){
-		if(game_board[row][i].value == value)
+		if(game_board[row][i].value == value){
+			if(only_fixed == 0)
+				return 0;
+			if(game_board[row][i].isFixed == 1)
+				return 0;
+		}
 			return 0;
-		if(game_board[i][col].value == value)
-			return 0;
+		if(game_board[i][col].value == value){
+			if(only_fixed == 0)
+				return 0;
+			if(game_board[i][col].isFixed == 1)
+				return 0;
+		}
 	}
 
 	/*
@@ -43,8 +53,12 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random){
 	block_start_col = (col/b->block_cols) * b->block_cols;
 	for( i = block_start_row; i < (block_start_row + b->block_rows); i++){
 		for( j = block_start_col; j < (block_start_col + b->block_cols); j++){
-			if(game_board[i][j].value == value)
-				return 0;
+			if(game_board[i][j].value == value){
+				if(only_fixed == 0)
+					return 0;
+				if(game_board[i][j].isFixed == 1)
+					return 0;
+			}
 		}
 	}
 
@@ -65,7 +79,7 @@ int* generate_options(Board* b, int row, int col, int is_random){
 
 	options = (int*) malloc(10 * sizeof(int));
 	for(value = 1; value <= b->board_size; value++){
-		if(check_valid_value(b,value,row,col,is_random) == 1){
+		if(check_valid_value(b,value,row,col,is_random,0) == 1){
 			/* printf("  value %d is legal.\n",value); */
 			count++;
 			options[count] = value;

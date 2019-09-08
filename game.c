@@ -15,7 +15,7 @@ Board* board = NULL;
  */
 void opening_message(){
 	printf("WELCOME TO THE GAME SUDOKU!\n\n\n");
-	printf("Plesae choose if you would like to edit a game board or solve an existing one.\n");
+	printf("Plesae choose if you would like to edit a game board, solve an existing one or exit.\n");
 	printf("Have fun!\n");
 }
 
@@ -28,6 +28,7 @@ void opening_message(){
 void createCell(Cell* cell,int val){
 	cell->value = val;
 	cell->isFixed = 0;
+	cell->isError = 0;
 }
 
 /*
@@ -97,16 +98,20 @@ void destroyBoard(Board* b){
 
 
 /*
- * Prints a single cell, acording to the sudoku board format.
+ * Prints a single cell, acording to the sudoku board format and the status of the cell.
  */
 void printCell(Cell* c){
-	if(c->isFixed == 0 && c->value != 0)
+
+	if( (c->isFixed == 0 && c->isError == 0) && (c->value != 0) )
 		printf(" %2d ",c->value);
 	else
-		if(c->value != 0)
+		if(c->value != 0 && c->isFixed == 1)
 			printf(" %2d.",c->value);
 		else
-			printf("    ");
+			if(c->value != 0 && c->isError == 1 && (current_mode == EDIT_MODE || mark_errors == 1))
+				printf(" %2d*",c->value);
+			else
+				printf("    ");
 }
 
 
@@ -237,7 +242,7 @@ void set(Board* board, int col, int row, int inserted_val, int param_counter){
 		printf("Error: Cell is fixed\n");
 		return;
 	}
-	if(inserted_val == 0 || check_valid_value(board, inserted_val, row, col, 0) == 1) {
+	if(inserted_val == 0 || check_valid_value(board, inserted_val, row, col, 0,0) == 1) {
 		if(inserted_val == 0 && board->current_board[row][col].value != 0) {
 			board->num_empty_cells_current++;
 		} else {
@@ -292,10 +297,34 @@ void exit_game(Board* board){
  *
  */
 void solve(char** path){
+	FILE* file;
+	char next_input[20] = {0};
+	//int m;
+	//int n;
+
+
+	if( (file = fopen(*path,"r")) == NULL ){
+		printf("Error: failed to open board file at the path you have given - %s\n",*path);
+		//perror("Error: failed to open board file at the path you have given - %s\n%s\n",*path,strerror(errno));
+		current_mode = INIT_MODE;
+		return;
+	//if( fscanf(file,"%20d",&next_input) == 0){
+
+	//}
+	//check isdigit
+	//m = atoi(next_input);
+	//fscanf(file,"%20d",next_input);
+	//check isdigit
+	//n = atoi(next_input);
+	while(fscanf(file,"%20s",next_input) != 0){
+
+	}
 	if(current_mode != SOLVE_MODE)
 		current_mode = SOLVE_MODE;
 	if(board)
 		destroyBoard(board);
+	}
+
 
 }
 

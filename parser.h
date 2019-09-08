@@ -30,6 +30,10 @@ typedef struct command_t{
  */
 int get_fixed_cells();
 
+/*
+ * Gets a string and returns 1 if the string has only digits (0-9) in it.
+ * Otherwise - returns 0.
+ */
 int is_string_a_int(char** str, int length);
 
 /*

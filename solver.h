@@ -7,10 +7,11 @@
 /*
  * Checks if it is legal to enter value in the board[row][col].
  * if is_random == 1: checks solution board.
+ * if only_fixed == 1: checks only compared to fixed cells.
  * else: checks current board;
  * returns 1 if legal, 0 if not
  */
-int check_valid_value(Board* b, int value, int row, int col, int is_random);
+int check_valid_value(Board* b, int value, int row, int col, int is_random, int only_fixed);
 
 
 /*
