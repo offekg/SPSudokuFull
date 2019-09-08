@@ -17,13 +17,13 @@ int mark_errors = 1;
 
 void eventual_main(){
 	Command* command;
-	Board* board;
+	//Board* board;
 	char userInput[MAX_COMMAND_SIZE+2] = { 0 };
 
 	opening_message();
-	board = create_blank_board(2,4);
+	/*board = create_blank_board(2,4);
 	generate_user_board(board);
-	printBoard(board,0);
+	printBoard(board,0);*/
 
 	while(1){
 		printf("Please enter a command:\n");
@@ -31,7 +31,7 @@ void eventual_main(){
 			if (ferror(stdin)) {
 				printf("Error: fgets has failed\n");
 			}
-			destroyBoard(board);
+			//destroyBoard(board);
 			printf("Exiting...\n");
 			exit(0);
 		}
@@ -49,10 +49,12 @@ void eventual_main(){
 			 */
 			continue;
 		}
-		execute_command(command, board);
+		execute_command(command);
+		printf("got out of execute_command\n");
 		destroy_command_object(command);
+		printf("got out of destroy_command\n");
 	}
-	destroyBoard(board);
+	//destroyBoard(board);
 }
 
 
@@ -70,27 +72,22 @@ void check_fscanf(char* path){
 	FILE* file;
 	Board* b;
 	int m,n,value,i,j;
+	int result;
 	char is_dot = ' ';
 	char* checker[20];// = {0};
 	if( (file = fopen(path,"r")) == NULL ){
-		printf("Error: failed to open board file at the path you have given - %s\n",path);
+		printf("Error: failed to open board file at the path you have given -\n%s\n",path);
 		//perror("Error: failed to open board file at the path you have given - %s\n%s\n",*path,strerror(errno));
 		return;
 	}
-	if(fscanf(file,"%d",&m) <= 0){
-		printf("Error: File is not a legal representation of a sudoku board.\n");
-		printf("It does not have a legal begining of block size.\n");
-		fclose(file);
-		return;
-		}
-	if(fscanf(file,"%d",&n) <= 0){
+	if(fscanf(file,"%d",&m) <= 0 || fscanf(file,"%d",&n) <= 0){
 		printf("Error: File is not a legal representation of a sudoku board.\n");
 		printf("It does not have a legal begining of block size.\n");
 		fclose(file);
 		return;
 		}
 	if(m*n > 99){
-		printf("Error: The file's given block size is too large.\n");
+		printf("Error: The file's given block size is too big.\n");
 		fclose(file);
 		return;
 	}
@@ -98,22 +95,24 @@ void check_fscanf(char* path){
 	b = create_blank_board(n,m);
 	for(i = 0; i < n*m; i++){
 		for(j = 0; j < n*m; j++){
-			if(fscanf(file,"%d",&value) <= 0){
+			if( (result = fscanf(file,"%d",&value)) <= 0){
 				printf("Error: File is not a legal representation of a sudoku board.\n");
-				printf("There are non numrical cells or not enough cells.\n");
+				if(result == 0)
+					printf("There are non numrical cells in the file.\n");
+				else
+					printf("There are not enough cells compared to the block size.\n");
 				destroyBoard(b);
 				fclose(file);
 				return;
 				}
 			if(value < 0 || value > m*n){
 				printf("Error: File is not a legal representation of a sudoku board.\n");
-				printf("There are cell values that are out of the range 0-%d.\n",m*n);
+				printf("There is a cell with value %d, that is out of the allowed range 0-%d.\n",value,m*n);
 				destroyBoard(b);
 				fclose(file);
 				return;
 			}
 			//printf("%d ",value);
-
 
 			//printCell(b->current_board[i][j]);
 			if( (fscanf(file,"%c",&is_dot) != 0) && (is_dot == '.') ){
@@ -138,7 +137,7 @@ void check_fscanf(char* path){
 		//printf("\n");
 	}
 	if(((m = fscanf(file,"%20s",*checker)) > 0)){
-		printf("fscanf result: %d  checker: %s\n",m,*checker);
+		//printf("fscanf result: %d  checker: %s\n",m,*checker);
 		printf("Error: File is not a legal representation of a sudoku board.\n");
 		printf("It has too many values compared to the given board size.\n");
 		destroyBoard(b);
@@ -151,12 +150,13 @@ void check_fscanf(char* path){
 	return;
 }
 
+
 int main(int argc, char *argv[]){
 	if(argc > 1)
 		srand(atoi(argv[1]));
 	SP_BUFF_SET();
-	char *path = "C:\\Users\\offek\\eclipse-c-workspace\\SPSudokuFull\\Board_files\\fixed.txt";
-	check_fscanf(path);
+	//char *path = "C:\\Users\\offek\\eclipse-c-workspace\\SPSudokuFull\\Board_files\\fixed.txt";
+	//check_fscanf(path);
 	/*int x;
 	char y[5], a[5], b[5], c[5];
 	x = scanf("%10s %s %s",y,a,b);
@@ -164,7 +164,7 @@ int main(int argc, char *argv[]){
 	x = scanf("%s\n",c);
 	printf("scanf 2 result: %d\n",x);
 	printf("y input: %s\na input: %s\nb input: %s\nc input: %s\n",y,a,b,c);*/
-	//eventual_main();
+	eventual_main();
 	return 0;
 }
 

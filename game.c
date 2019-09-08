@@ -290,42 +290,108 @@ void exit_game(Board* board){
 }
 
 /*
+ * Function that recieves a path, and if possible loads the game board that is saved on it.
+ * Returns 1 on success. 0 if failed to load.
+ *
+ */
+int load_board(char* path){
+	FILE* file;
+	int m,n,value,i,j;
+	int result;
+	char is_dot = ' ';
+	char* checker[20];// = {0};
+	if( (file = fopen(path,"r")) == NULL ){
+		printf("Error: failed to open board file at the path you have given -\n%s\n",path);
+		//perror("Error: failed to open board file at the path you have given - %s\n%s\n",*path,strerror(errno));
+		return 0;
+	}
+	if(fscanf(file,"%d",&m) <= 0 || fscanf(file,"%d",&n) <= 0){
+		printf("Error: File is not a legal representation of a sudoku board.\n");
+		printf("It does not have a legal begining of block size.\n");
+		fclose(file);
+		return 0;
+		}
+	if(m*n > 99){
+		printf("Error: The file's given block size is too big.\n");
+		fclose(file);
+		return 0;
+	}
+	printf("n: %d m: %d\n",n,m);
+	board = create_blank_board(n,m);
+	for(i = 0; i < n*m; i++){
+		for(j = 0; j < n*m; j++){
+			if( (result = fscanf(file,"%d",&value)) <= 0){
+				printf("Error: File is not a legal representation of a sudoku board.\n");
+				if(result == 0)
+					printf("There are non numrical cells in the file.\n");
+				else
+					printf("There are not enough cells compared to the block size.\n");
+				destroyBoard(board);
+				board = NULL;
+				fclose(file);
+				return 0;
+				}
+			if(value < 0 || value > m*n){
+				printf("Error: File is not a legal representation of a sudoku board.\n");
+				printf("There is a cell with value %d, that is out of the allowed range 0-%d.\n",value,m*n);
+				destroyBoard(board);
+				board = NULL;
+				fclose(file);
+				return 0;
+			}
+			//printf("%d ",value);
+
+			//printCell(b->current_board[i][j]);
+			if( (fscanf(file,"%c",&is_dot) != 0) && (is_dot == '.') ){
+				if(value == 0){
+					printf("Error: File is not a legal representation of a sudoku board.\n");
+					printf("EFile has an illegal fixed cell with value 0.\n");
+					destroyBoard(board);
+					board = NULL;
+					fclose(file);
+					return 0;
+				}
+				if( check_valid_value(board,value,i,j,0,1) == 0 ){
+					printf("Error: File is not a legal representation of a sudoku board.\n");
+					printf("There are at least 2 fixed cells that clash with each other.\n");
+					destroyBoard(board);
+					board = NULL;
+					fclose(file);
+					return 0;
+				}
+				board->current_board[i][j].isFixed = 1;
+			}
+			is_dot = ' ';
+			(board->current_board[i][j]).value = value;
+			mark_erroneous_cells(board,i,j);
+		}
+	}
+	if(((m = fscanf(file,"%20s",*checker)) > 0)){
+		//printf("fscanf result: %d  checker: %s\n",m,*checker);
+		printf("Error: File is not a legal representation of a sudoku board.\n");
+		printf("It has too many values compared to the given board size.\n");
+		destroyBoard(board);
+		fclose(file);
+		return 0;
+	}
+	fclose(file);
+	return 1;
+}
+
+/*
  * The function is called on when user enters the "solve" command.
  * Function is availabe for all modes.
  * Changes game mode to SOLVE_MODE if not already set to it.
  * Tries to load the board saved in path if path is legal and if the file has a legal board on it.
  *
  */
-void solve(char** path){
-	FILE* file;
-	char next_input[20] = {0};
-	//int m;
-	//int n;
-
-
-	if( (file = fopen(*path,"r")) == NULL ){
-		printf("Error: failed to open board file at the path you have given - %s\n",*path);
-		//perror("Error: failed to open board file at the path you have given - %s\n%s\n",*path,strerror(errno));
-		current_mode = INIT_MODE;
+void solve(char* path){
+	if(load_board(path) == 0)
 		return;
-	//if( fscanf(file,"%20d",&next_input) == 0){
 
-	//}
-	//check isdigit
-	//m = atoi(next_input);
-	//fscanf(file,"%20d",next_input);
-	//check isdigit
-	//n = atoi(next_input);
-	while(fscanf(file,"%20s",next_input) != 0){
-
-	}
 	if(current_mode != SOLVE_MODE)
 		current_mode = SOLVE_MODE;
-	if(board)
-		destroyBoard(board);
-	}
-
-
+	printBoard(board,0);
 }
 
 
@@ -333,7 +399,7 @@ void solve(char** path){
 /*
  *Recieves given command from user, and implements it appropriately.
  */
-void execute_command(Command* command, Board* board) {
+void execute_command(Command* command){ //, Board* board) {
 	int row = command->params[1] - 1;
 	int col = command->params[0] - 1;
 	int inserted_val = command->params[2];
@@ -341,7 +407,8 @@ void execute_command(Command* command, Board* board) {
 
 	switch(command->id) {
 		case SOLVE:
-			solve(&(command->path_param));
+			solve(command->path_param);
+			printf("got after solve function.\n");
 			break;
 		case SET:
 			set(board, col, row, inserted_val, command->param_counter);

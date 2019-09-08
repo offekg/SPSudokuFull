@@ -72,7 +72,7 @@ void generate_user_board(Board *originalBoard);
 /*
  *Recieves given command from user, and implements it appropriately.
  */
-void execute_command(Command* command, Board* board);
+void execute_command(Command* command);
 
 /*
  * Gets a pointer to a cell, and initializes it with given value.

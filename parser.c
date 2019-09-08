@@ -9,7 +9,7 @@
 #include "game.h"
 
 #define DELIMITER " \t\r\n"
-#define MALLOC_ERROR "Error: malloc has failed\n"
+#define MALLOC_ERROR "Error: malloc has failed. Now terminating.\n"
 
 
 /*
@@ -57,7 +57,7 @@ enum command_id get_command_id(char *type) {
 /*
  *Creates a Command struct out of the user input.
  */
-Command* create_new_command_object(int cmd_id, int params[3], int param_counter, char** path_param) {
+Command* create_new_command_object(int cmd_id, int params[3], int param_counter, char* path_param) {
 	int i;
 	Command* cmd = (Command*) malloc(sizeof(Command));
 	if (cmd == NULL) {
@@ -68,19 +68,38 @@ Command* create_new_command_object(int cmd_id, int params[3], int param_counter,
 	cmd->id = cmd_id;
 	cmd->param_counter = param_counter;
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
 		cmd->params[i] = params[i];
-	}
 
-	cmd->path_param = *path_param;
+	if(path_param){
+		cmd->path_param = (char*) malloc(sizeof(char) * (strlen(path_param) + 1));
+		if (cmd->path_param == NULL) {
+				printf(MALLOC_ERROR);
+				exit(EXIT_FAILURE);
+			}
+		strcpy(cmd->path_param,path_param);
+	}
+	else
+		cmd->path_param = NULL;
+	//cmd->path_param = *path_param;
 	return cmd;
 }
 
 void destroy_command_object(Command* cmd){
+	printf("entered destroy command\n");
+	if(!cmd){
+		printf("saw command is null\n");
+		return;
+	}
+	printf("saw command isn't null\n");
 	if(cmd->path_param){
+		printf("saw that path_param isn't null\n");
+		printf("path_param: %s\n",cmd->path_param);
 		free(cmd->path_param);
+		printf("freed path_param\n");
 	}
 	free(cmd);
+	printf("freed the command\n");
 }
 
 /*
@@ -181,7 +200,7 @@ int check_command_availability(enum command_id cmd_id){
  * Parses it to a specific command (including it's paramaters), creates a command struct and returns it for execution.
  * If encounters an error, prints a relevant message and returns Null.
  */
-Command* parse_command(char userInput[]) {
+Command* parse_command(char* userInput) {
 	enum command_id cmd_id;
 	int param_counter = 0;
 	int params[3] = { 0 };
@@ -221,6 +240,7 @@ Command* parse_command(char userInput[]) {
 		}
 
 		if(cmd_id == EDIT || cmd_id == SOLVE || cmd_id == SAVE)
+			//strcpy(path_param,token);
 			path_param = token;
 		else{
 			length = strlen(token);
@@ -245,5 +265,5 @@ Command* parse_command(char userInput[]) {
 		return NULL;
 	}
 
-	return create_new_command_object(cmd_id, params, param_counter,&path_param);
+	return create_new_command_object(cmd_id, params, param_counter,path_param);
 }

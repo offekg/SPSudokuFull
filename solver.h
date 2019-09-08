@@ -13,6 +13,13 @@
  */
 int check_valid_value(Board* b, int value, int row, int col, int is_random, int only_fixed);
 
+/*
+ * Function checks and marks if the current value of a given cell (by row, col)
+ * is erroneous with regards to other cells. Also marks other cells that clash with it.
+ * Returns 1 if no errors found. 0 if cells were marked.
+ * Fixed cells can not be erroneous (so they are not marked).
+ */
+int mark_erroneous_cells(Board* b,int row, int col);
 
 /*
  * Recursive function that fills given Boards game board with a solution.

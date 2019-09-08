@@ -19,8 +19,12 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 	int block_start_row, block_start_col;
 	Cell** game_board;
 
-	if(value > b->board_size || value < 0)
+	if(value > b->board_size || value < 0){
+		//printf("Problem 0\n");
 		return 0;
+	}
+	if(value == 0)
+		return 1;
 
 	if( is_random == 1 )
 		game_board = b->solution;
@@ -31,17 +35,14 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 	 * check for exiting cell with same value in same row or column
 	 */
 	for( i = 0; i < b->board_size; i++ ){
-		if(game_board[row][i].value == value){
-			if(only_fixed == 0)
-				return 0;
-			if(game_board[row][i].isFixed == 1)
+		if(game_board[row][i].value == value && i != col){
+			//printf("Problem 1\n");
+			if(only_fixed == 0 || game_board[row][i].isFixed == 1)
 				return 0;
 		}
-			return 0;
-		if(game_board[i][col].value == value){
-			if(only_fixed == 0)
-				return 0;
-			if(game_board[i][col].isFixed == 1)
+		if(game_board[i][col].value == value && i != row){
+			//printf("Problem 2\n");
+			if(only_fixed == 0 || game_board[i][col].isFixed == 1)
 				return 0;
 		}
 	}
@@ -53,10 +54,9 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 	block_start_col = (col/b->block_cols) * b->block_cols;
 	for( i = block_start_row; i < (block_start_row + b->block_rows); i++){
 		for( j = block_start_col; j < (block_start_col + b->block_cols); j++){
-			if(game_board[i][j].value == value){
-				if(only_fixed == 0)
-					return 0;
-				if(game_board[i][j].isFixed == 1)
+			if(game_board[i][j].value == value && (i != row || j != col)){
+				//printf("Problem 3\n");
+				if(only_fixed == 0 || game_board[i][j].isFixed == 1)
 					return 0;
 			}
 		}
@@ -65,6 +65,60 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 	return 1;
 }
 
+/*
+ * Function checks and marks if the current value of a given cell (by row, col)
+ * is erroneous with regards to other cells. Also marks other cells that clash with it.
+ * Returns 1 if no errors found. 0 if cells were marked.
+ * Fixed cells can not be erroneous (so they are not marked).
+ */
+int mark_erroneous_cells(Board* b,int row, int col){
+	Cell** game_board = b->current_board;
+	Cell* checked_cell = &(game_board[row][col]);
+	int value = checked_cell->value;
+	int i, j;
+	int block_start_row, block_start_col;
+
+	if(value == 0)
+		return 1;
+	if(game_board[row][col].isFixed == 1)
+		return 1;
+	/*
+	 * check for clash in same row or column
+	 */
+	for( i = 0; i < b->board_size; i++ ){
+		if(game_board[row][i].value == value && i != col){
+			//printf("Problem 1\n");
+			checked_cell->isError = 1;
+			if(game_board[row][i].isFixed == 0)
+				game_board[row][i].isError = 1;
+		}
+		if(game_board[i][col].value == value && i != row){
+			//printf("Problem 2\n");
+			checked_cell->isError = 1;
+			if(game_board[i][col].isFixed == 0)
+				game_board[i][col].isError = 1;
+		}
+	}
+
+	/*
+	 * check for exiting cell with same value in same block
+	 */
+	block_start_row = (row/b->block_rows) * b->block_rows;
+	block_start_col = (col/b->block_cols) * b->block_cols;
+	for( i = block_start_row; i < (block_start_row + b->block_rows); i++){
+		for( j = block_start_col; j < (block_start_col + b->block_cols); j++){
+			if(game_board[i][j].value == value && (i != row || j != col)){
+				//printf("Problem 3\n");
+				checked_cell->isError = 1;
+				if(game_board[i][j].isFixed == 0)
+					game_board[i][j].isError = 1;
+			}
+		}
+	}
+	if(checked_cell->isError == 1)
+		return 0;
+	return 1;
+}
 /*
  * For use in random backtrack.
  * Get's a certain cell in game board, and returns list of possible options for that cell.
