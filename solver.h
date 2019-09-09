@@ -22,6 +22,12 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 int mark_erroneous_cells(Board* b,int row, int col);
 
 /*
+ * Function checks given board for erroneous cells.
+ * Returns 1 if there are errors, 0 if there are none.
+ */
+int check_board_errors(Board* b);
+
+/*
  * Recursive function that fills given Boards game board with a solution.
  * If is_random == 1: Fills b->solution with a random full board by random backtracking.
  * If is_random == 0: Does validation on current state of b->current_board with deterministic backtracking.

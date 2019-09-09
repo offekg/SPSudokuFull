@@ -71,12 +71,13 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
  * Returns 1 if no errors found. 0 if cells were marked.
  * Fixed cells can not be erroneous (so they are not marked).
  */
-int mark_erroneous_cells(Board* b,int row, int col){
+int mark_erroneous_cells(Board* b,int row, int col){  //need to also uncheck errors after cell change
 	Cell** game_board = b->current_board;
 	Cell* checked_cell = &(game_board[row][col]);
 	int value = checked_cell->value;
 	int i, j;
 	int block_start_row, block_start_col;
+	//int found_error = 0;
 
 	if(value == 0)
 		return 1;
@@ -119,6 +120,21 @@ int mark_erroneous_cells(Board* b,int row, int col){
 		return 0;
 	return 1;
 }
+
+/*
+ * Function checks given board for erroneous cells.
+ * Returns 1 if there are errors, 0 if there are none.
+ */
+int check_board_errors(Board* b){
+	int i,j;
+	for(i = 0; i < b->board_size; i++)
+		for(j = 0; j < b->board_size; j++)
+			if(b->current_board[i][j].isError == 1)
+				return 1;
+
+	return 0;
+}
+
 /*
  * For use in random backtrack.
  * Get's a certain cell in game board, and returns list of possible options for that cell.

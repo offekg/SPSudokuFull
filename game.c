@@ -102,7 +102,7 @@ void destroyBoard(Board* b){
  */
 void printCell(Cell* c){
 
-	if( (c->isFixed == 0 && c->isError == 0) && (c->value != 0) )
+	if( (c->isFixed == 0) && (c->isError == 0 || (current_mode == SOLVE_MODE && mark_errors == 0)) && (c->value != 0) )
 		printf(" %2d ",c->value);
 	else
 		if(c->value != 0 && c->isFixed == 1)
@@ -233,33 +233,46 @@ void validate(Board* b){
  * If command was legal, prints the new board.
  * If also the board is now full - prints that the user has solved the puzzle.
  */
-void set(Board* board, int col, int row, int inserted_val, int param_counter){
-	if(col < 0 || row < 0 || board->num_empty_cells_current == 0 || param_counter < 3){
-		printf("Error: Invalid Command\n");
+void set(Board* b, int col, int row, int inserted_val){
+	Cell** game_board = b->current_board;
+	int board_size = b->board_size;
+	if(col < 0 || col > board_size){
+		printf("Error: Invalid Command - Column (first) paramater is out of the range 1-%d.\n",board_size);
 		return;
 	}
-	if(board->current_board[row][col].isFixed == 1) {
-		printf("Error: Cell is fixed\n");
+	if(row < 0 || row > board_size){
+			printf("Error: Invalid Command - Row (second) paramater is out of the range 1-%d.\n",board_size);
+			return;
+	}
+	if(inserted_val < 0 || inserted_val > board_size){
+			printf("Error: Invalid Command - The inserted value (third) paramater is out of the range 1-%d.\n",board_size);
+			return;
+	}
+	if(current_mode == SOLVE_MODE && game_board[row][col].isFixed == 1) {
+		printf("Error: You can't change a fixed cell in Solve Mode.\n");
 		return;
 	}
-	if(inserted_val == 0 || check_valid_value(board, inserted_val, row, col, 0,0) == 1) {
-		if(inserted_val == 0 && board->current_board[row][col].value != 0) {
-			board->num_empty_cells_current++;
-		} else {
-			if(inserted_val != 0 && board->current_board[row][col].value == 0){
-				board->num_empty_cells_current--;
-			}
-		}
-		board->current_board[row][col].value = inserted_val;
-		printBoard(board, 0);
-		if(board->num_empty_cells_current == 0) {
-			printf("Puzzle solved successfully\n");
-		}
 
-	}
-	else {
-		printf("Error: Value is invalid\n");
-		return;
+	//if(inserted_val == 0 || check_valid_value(board, inserted_val, row, col, 0,0) == 1) {
+	if(inserted_val == 0 && game_board[row][col].value != 0)
+		board->num_empty_cells_current++;
+	if(inserted_val != 0 && game_board[row][col].value == 0)
+		board->num_empty_cells_current--;
+
+	game_board[row][col].value = inserted_val;
+	mark_erroneous_cells(b,row,col);
+	printBoard(board, 0);
+	printf("num empty cells: %d\n",board->num_empty_cells_current);
+	if(board->num_empty_cells_current == 0 && current_mode == SOLVE_MODE) {
+		if(check_board_errors(b) == 0){
+			printf("Congratulations! Puzzle solved successfully!!\n");
+			destroyBoard(b);
+			current_mode = INIT_MODE;
+		}
+		else{
+			printf("Sorry, your current solution has errors :(  Keep trying!\n");
+			printf("You can undo yout last move or set cells to a diffrent value.\n");
+		}
 	}
 	return;
 }
@@ -298,11 +311,11 @@ int load_board(char* path){
 	FILE* file;
 	int m,n,value,i,j;
 	int result;
+	int num_empty_cells = 0;
 	char is_dot = ' ';
-	char* checker[20];// = {0};
+	char* checker[20];
 	if( (file = fopen(path,"r")) == NULL ){
 		printf("Error: failed to open board file at the path you have given -\n%s\n",path);
-		//perror("Error: failed to open board file at the path you have given - %s\n%s\n",*path,strerror(errno));
 		return 0;
 	}
 	if(fscanf(file,"%d",&m) <= 0 || fscanf(file,"%d",&n) <= 0){
@@ -316,7 +329,7 @@ int load_board(char* path){
 		fclose(file);
 		return 0;
 	}
-	printf("n: %d m: %d\n",n,m);
+	//printf("n: %d m: %d\n",n,m);
 	board = create_blank_board(n,m);
 	for(i = 0; i < n*m; i++){
 		for(j = 0; j < n*m; j++){
@@ -362,8 +375,12 @@ int load_board(char* path){
 				board->current_board[i][j].isFixed = 1;
 			}
 			is_dot = ' ';
+
 			(board->current_board[i][j]).value = value;
-			mark_erroneous_cells(board,i,j);
+			if(value == 0)
+				num_empty_cells++;
+			else
+				mark_erroneous_cells(board,i,j);
 		}
 	}
 	if(((m = fscanf(file,"%20s",*checker)) > 0)){
@@ -374,6 +391,7 @@ int load_board(char* path){
 		fclose(file);
 		return 0;
 	}
+	board->num_empty_cells_current = num_empty_cells;
 	fclose(file);
 	return 1;
 }
@@ -389,8 +407,24 @@ void solve(char* path){
 	if(load_board(path) == 0)
 		return;
 
-	if(current_mode != SOLVE_MODE)
+	if(current_mode != SOLVE_MODE){
 		current_mode = SOLVE_MODE;
+		printf("Game is now in SOLVE mode\n");
+	}
+	printBoard(board,0);
+}
+
+
+void edit(char* path){
+	if(path != NULL){
+		if(load_board(path) == 0)
+			return;
+	}
+	else{
+
+	}
+	if(current_mode != EDIT_MODE)
+		current_mode = EDIT_MODE;
 	printBoard(board,0);
 }
 
@@ -399,26 +433,40 @@ void solve(char* path){
 /*
  *Recieves given command from user, and implements it appropriately.
  */
-void execute_command(Command* command){ //, Board* board) {
-	int row = command->params[1] - 1;
+void execute_command(Command* command){
 	int col = command->params[0] - 1;
+	int row = command->params[1] - 1;
 	int inserted_val = command->params[2];
+	int binary_param = command->params[0];
 	//char* path = command->path_param;
 
 	switch(command->id) {
 		case SOLVE:
 			solve(command->path_param);
-			printf("got after solve function.\n");
+			break;
+		case EDIT:
+			edit(command->path_param);
+			break;
+		case MARK_ERRORS:
+			if(binary_param > 1 || binary_param < 0)
+				printf("Error: Invalid Command - mark_errors can only be used with 0 or 1.\n");
+			else{
+				mark_errors = binary_param;
+				printBoard(board,0);
+			}
+			break;
+		case PRINT_BOARD:
+			printBoard(board,0);
 			break;
 		case SET:
-			set(board, col, row, inserted_val, command->param_counter);
+			set(board, col, row, inserted_val);
 			break;
 		case VALIDATE:
 			validate(board);
 			break;
 		case HINT:
 		    if(col < 0 || row < 0 || board->num_empty_cells_current == 0 || command->param_counter < 2){
-		    	printf("Error: invalid command\n");
+		    	printf("Error: Invalid command\n");
 		    	break;
 		    }
 		    printf("Hint: set cell to %d\n", board->solution[row][col].value);
@@ -430,10 +478,11 @@ void execute_command(Command* command){ //, Board* board) {
 			destroy_command_object(command);
 			exit_game(board);
 			break;
-		default :
+		default:
 		    printf("Error: Invalid Command\n");
 		    break;
 	}
+	return;
 	//free(command);   - gets freed in main now after used
 }
 

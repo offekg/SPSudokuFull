@@ -26,7 +26,7 @@ void eventual_main(){
 	printBoard(board,0);*/
 
 	while(1){
-		printf("Please enter a command:\n");
+		printf("\nPlease enter a command:\n");
 		if (fgets(userInput, MAX_COMMAND_SIZE+3, stdin) == NULL) {
 			if (ferror(stdin)) {
 				printf("Error: fgets has failed\n");
@@ -50,9 +50,7 @@ void eventual_main(){
 			continue;
 		}
 		execute_command(command);
-		printf("got out of execute_command\n");
 		destroy_command_object(command);
-		printf("got out of destroy_command\n");
 	}
 	//destroyBoard(board);
 }

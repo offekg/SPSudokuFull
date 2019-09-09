@@ -86,20 +86,11 @@ Command* create_new_command_object(int cmd_id, int params[3], int param_counter,
 }
 
 void destroy_command_object(Command* cmd){
-	printf("entered destroy command\n");
-	if(!cmd){
-		printf("saw command is null\n");
+	if(!cmd)
 		return;
-	}
-	printf("saw command isn't null\n");
-	if(cmd->path_param){
-		printf("saw that path_param isn't null\n");
-		printf("path_param: %s\n",cmd->path_param);
+	if(cmd->path_param)
 		free(cmd->path_param);
-		printf("freed path_param\n");
-	}
 	free(cmd);
-	printf("freed the command\n");
 }
 
 /*
@@ -261,7 +252,7 @@ Command* parse_command(char* userInput) {
 	}
 
 	if(param_not_int){
-		printf("Error: Wrong paramater type.\nParamater %d needs to be an integer.\n",first_bad_param);
+		printf("Error: Wrong paramater type.\nParamater %d needs to be a positive integer.\n",first_bad_param);
 		return NULL;
 	}
 
