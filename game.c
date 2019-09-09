@@ -428,7 +428,23 @@ void edit(char* path){
 	printBoard(board,0);
 }
 
+int autofill(){
+	int i,j;
+	int num_filled = 0;
+	int* options;
+	int board_size = board->board_size;
+	Cell** updated_board = copy_game_board(board->current_board,board_size);
+	for(i = 0; i < board_size; i++)
+		for(j = 0; j < board_size; j++){
+			options = generate_options(board,i,j,0);
+			if(options[0] == 1){
+				updated_board[i][j].value = options[1];
+				num_filled++;
+			}
+		}
 
+	return num_filled;
+}
 
 /*
  *Recieves given command from user, and implements it appropriately.
@@ -462,15 +478,28 @@ void execute_command(Command* command){
 			set(board, col, row, inserted_val);
 			break;
 		case VALIDATE:
-			validate(board);
+			//validate(board);
+			break;
+		case GENERATE:
+			break;
+		case UNDO:
+			break;
+		case REDO:
+			break;
+		case SAVE:
 			break;
 		case HINT:
 		    if(col < 0 || row < 0 || board->num_empty_cells_current == 0 || command->param_counter < 2){
 		    	printf("Error: Invalid command\n");
 		    	break;
 		    }
-		    printf("Hint: set cell to %d\n", board->solution[row][col].value);
+		    //printf("Hint: set cell to %d\n", board->solution[row][col].value);
 		    break;
+		case NUM_SOLUTIONS:
+			break;
+		case AUTOFILL:
+			autofill();
+			break;
 		case RESET:
 			restart(board);
 			break;

@@ -13,6 +13,16 @@
  */
 int check_valid_value(Board* b, int value, int row, int col, int is_random, int only_fixed);
 
+
+/*
+ * For use in random backtrack.
+ * Get's a certain cell in game board, and returns list of possible options for that cell.
+ * At options[0] is the amount of options found
+ * If is_random == 1: chooses only valid options. else: gives all options 1-9.
+ * returned value needs to be freed after use!!!
+ */
+int* generate_options(Board* b, int row, int col, int is_random);
+
 /*
  * Function checks and marks if the current value of a given cell (by row, col)
  * is erroneous with regards to other cells. Also marks other cells that clash with it.
