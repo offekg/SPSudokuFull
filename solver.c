@@ -9,7 +9,7 @@
 
 /*
  * Checks if it is legal to enter value in the board[row][col].
- * if is_random == 1: checks solution board.
+ * if is_random == 1: checks solution board. Otherwise checks current_board.
  * if only_fixed == 1: checks only compared to fixed cells.
  * else: checks current board;
  * returns 1 if legal, 0 if not
@@ -66,14 +66,14 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 }
 
 /*
- * Function checks and marks if the current value of a given cell (by row, col)
+ * Function checks and marks if the current value of a given cell (by regular C row, col)
  * is erroneous with regards to other cells. Also marks other cells that clash with it.
  * Returns 1 if no errors found. 0 if cells were marked.
  * Fixed cells can not be erroneous (so they are not marked).
  */
-int mark_erroneous_cells(Board* b,int row, int col){  //need to also uncheck errors after cell change
-	Cell** game_board = b->current_board;
+int mark_erroneous_cells(Cell** game_board,int block_rows,int block_cols,int row, int col){  //need to also uncheck errors after cell change
 	Cell* checked_cell = &(game_board[row][col]);
+	int board_size = block_cols*block_rows;
 	int value = checked_cell->value;
 	int i, j;
 	int block_start_row, block_start_col;
@@ -86,7 +86,7 @@ int mark_erroneous_cells(Board* b,int row, int col){  //need to also uncheck err
 	/*
 	 * check for clash in same row or column
 	 */
-	for( i = 0; i < b->board_size; i++ ){
+	for( i = 0; i < board_size; i++ ){
 		if(game_board[row][i].value == value && i != col){
 			//printf("Problem 1\n");
 			checked_cell->isError = 1;
@@ -104,10 +104,10 @@ int mark_erroneous_cells(Board* b,int row, int col){  //need to also uncheck err
 	/*
 	 * check for exiting cell with same value in same block
 	 */
-	block_start_row = (row/b->block_rows) * b->block_rows;
-	block_start_col = (col/b->block_cols) * b->block_cols;
-	for( i = block_start_row; i < (block_start_row + b->block_rows); i++){
-		for( j = block_start_col; j < (block_start_col + b->block_cols); j++){
+	block_start_row = (row/block_rows) * block_rows;
+	block_start_col = (col/block_cols) * block_cols;
+	for( i = block_start_row; i < (block_start_row + block_rows); i++){
+		for( j = block_start_col; j < (block_start_col + block_cols); j++){
 			if(game_board[i][j].value == value && (i != row || j != col)){
 				//printf("Problem 3\n");
 				checked_cell->isError = 1;
@@ -146,11 +146,11 @@ int* generate_options(Board* b, int row, int col, int is_random){
 	int* options;
 	int value;
 	int count = 0;
-
+	//printf("checking col: %d row: %d\n",col+1,row+1);
 	options = (int*) malloc(10 * sizeof(int));
 	for(value = 1; value <= b->board_size; value++){
 		if(check_valid_value(b,value,row,col,is_random,0) == 1){
-			/* printf("  value %d is legal.\n",value); */
+			//printf("  value %d is legal.\n",value);
 			count++;
 			options[count] = value;
 		}

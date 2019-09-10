@@ -10,14 +10,6 @@
 #define MALLOC_ERROR "Error: malloc has failed"
 
 Board* board = NULL;
-/*
- * Prints to the prompt the opening greeting and initial instructions to the user.
- */
-void opening_message(){
-	printf("WELCOME TO THE GAME SUDOKU!\n\n\n");
-	printf("Plesae choose if you would like to edit a game board, solve an existing one or exit.\n");
-	printf("Have fun!\n");
-}
 
 
 /*
@@ -114,6 +106,37 @@ void printCell(Cell* c){
 				printf("    ");
 }
 
+void printIsError(Board* b){
+		int i, j;
+		Cell** board;
+		char* sep_row;
+		int total_row_length = (4* b->board_size) + b->block_rows + 1;
+		board = b->current_board;
+
+		sep_row = (char*) malloc((total_row_length + 2)*sizeof(char));
+		for( i = 0; i < total_row_length; i++ ){
+			sep_row[i] ='-';
+		}
+		sep_row[total_row_length] = '\n';
+		sep_row[total_row_length + 1] = '\0';
+
+
+		for( i = 0; i < b->board_size; i++){
+			if( i % b->block_rows == 0 )
+				printf("%s",sep_row);
+			for( j = 0; j < b->board_size; j++){
+				if( j % b->block_cols == 0 )
+					printf("|");
+				printf("  %d ",board[i][j].isError);
+			}
+			printf("|\n");
+		}
+		printf("%s",sep_row);
+
+		free(sep_row);
+
+}
+
 
 /*
  * Prints the given board.
@@ -196,9 +219,44 @@ Cell** copy_game_board(Cell** game_board, int board_size){
 		for(j = 0; j < board_size; j++){
 			copy[i][j].value = game_board[i][j].value;
 			copy[i][j].isFixed = game_board[i][j].isFixed;
+			copy[i][j].isError = game_board[i][j].isError;
 		}
 	}
 	return copy;
+}
+/*
+ * The following 3 functions are printinf functions for use after changing
+ * the game mode.
+ * They inform the player of the available commands.
+ */
+void INIT_Mode_print(){
+	printf("Game is now in INIT mode.\n");
+	printf("In this mode you may use the following commands:\n");
+	printf("    solve, edit or exit\n");
+}
+
+void SOLVE_Mode_print(){
+	printf("Game is now in SOLVE mode.\n");
+	printf("In this mode you may use the following commands:\n");
+	printf("    solve, edit, print_board, mark_errors, set, validate, undo,\n");
+	printf("    redo, save, hint, autofill, num_solutions, reset or exit\n");
+}
+
+void EDIT_Mode_print(){
+	printf("Game is now in INIT mode.\n");
+	printf("In this mode you may use the following commands:\n");
+	printf("    solve, edit, print_board, set, validate, undo, redo,\n");
+	printf("    save, num_solutions, generate, reset or exit\n");
+}
+
+/*
+ * Prints to the prompt the opening greeting and initial instructions to the user.
+ */
+void opening_message(){
+	printf("WELCOME TO THE GAME SUDOKU!\n\n\n");
+	printf("Plesae choose if you would like to edit a game board, solve an existing one or exit.\n");
+	printf("Have fun!\n\n");
+	INIT_Mode_print();
 }
 
 /*
@@ -225,6 +283,31 @@ void validate(Board* b){
 		b->current_board = current_copy;
 		b->num_empty_cells_current = empty_cells_copy;
 	}
+}
+
+/*
+ * Function checks if the given board has no more empty cells.
+ * If board is full - return 1; otherwise return 0;
+ * If board is full the function checks if the board has errors:
+ *     If there aren't, then the game mode is switched to INIT,
+ *     and the game board is destroyed.
+ *     A message is printed acourdingly.
+ */
+int check_full_board(Board* b){
+	if(b->num_empty_cells_current == 0 && current_mode == SOLVE_MODE) {
+		if(check_board_errors(b) == 0){
+			printf("Congratulations! Puzzle solved successfully!!\n\n");
+			destroyBoard(b);
+			current_mode = INIT_MODE;
+			INIT_Mode_print();
+		}
+		else{
+			printf("Sorry, your current solution has errors :(  Keep trying!\n");
+			printf("You can undo your last move or set cells to a diffrent value.\n");
+		}
+		return 1;
+	}
+	return 0;
 }
 
 /*
@@ -260,20 +343,10 @@ void set(Board* b, int col, int row, int inserted_val){
 		board->num_empty_cells_current--;
 
 	game_board[row][col].value = inserted_val;
-	mark_erroneous_cells(b,row,col);
+	mark_erroneous_cells(game_board,b->block_rows,b->block_cols,row,col);
 	printBoard(board, 0);
 	printf("num empty cells: %d\n",board->num_empty_cells_current);
-	if(board->num_empty_cells_current == 0 && current_mode == SOLVE_MODE) {
-		if(check_board_errors(b) == 0){
-			printf("Congratulations! Puzzle solved successfully!!\n");
-			destroyBoard(b);
-			current_mode = INIT_MODE;
-		}
-		else{
-			printf("Sorry, your current solution has errors :(  Keep trying!\n");
-			printf("You can undo yout last move or set cells to a diffrent value.\n");
-		}
-	}
+	check_full_board(b);
 	return;
 }
 
@@ -380,7 +453,8 @@ int load_board(char* path){
 			if(value == 0)
 				num_empty_cells++;
 			else
-				mark_erroneous_cells(board,i,j);
+				mark_erroneous_cells(board->current_board,board->block_rows,board->block_cols,i,j);
+			//printf("cell %d,%d isError: %d\n",j+1,i+1,board->current_board[i][j].isError);
 		}
 	}
 	if(((m = fscanf(file,"%20s",*checker)) > 0)){
@@ -409,9 +483,10 @@ void solve(char* path){
 
 	if(current_mode != SOLVE_MODE){
 		current_mode = SOLVE_MODE;
-		printf("Game is now in SOLVE mode\n");
+		SOLVE_Mode_print();
 	}
 	printBoard(board,0);
+	check_full_board(board);
 }
 
 
@@ -423,8 +498,10 @@ void edit(char* path){
 	else{
 
 	}
-	if(current_mode != EDIT_MODE)
+	if(current_mode != EDIT_MODE){
 		current_mode = EDIT_MODE;
+		EDIT_Mode_print();
+	}
 	printBoard(board,0);
 }
 
@@ -434,15 +511,30 @@ int autofill(){
 	int* options;
 	int board_size = board->board_size;
 	Cell** updated_board = copy_game_board(board->current_board,board_size);
+	if(board == NULL){
+		printf("Error: there is no board to autofill.\n");
+		return -1;
+	}
+	//printf("num empty cells now is: %d\n",board->num_empty_cells_current);
 	for(i = 0; i < board_size; i++)
 		for(j = 0; j < board_size; j++){
-			options = generate_options(board,i,j,0);
-			if(options[0] == 1){
-				updated_board[i][j].value = options[1];
-				num_filled++;
+			if(board->current_board[i][j].value == 0){
+				options = generate_options(board,i,j,0);
+				//printf("num options for cell %d,%d is %d\n",i,j,options[0]);
+				if(options[0] == 1){
+					updated_board[i][j].value = options[1];
+					num_filled++;
+					mark_erroneous_cells(updated_board,board->block_rows,board->block_cols,i,j);
+				}
+				free(options);
 			}
 		}
-
+	destroy_game_board(board->current_board,board_size);
+	board->current_board = updated_board;
+	board->num_empty_cells_current -= num_filled;
+	printBoard(board,0);
+	//printf("num empty cells now is: %d\n",board->num_empty_cells_current);
+	check_full_board(board);
 	return num_filled;
 }
 
@@ -498,7 +590,7 @@ void execute_command(Command* command){
 		case NUM_SOLUTIONS:
 			break;
 		case AUTOFILL:
-			autofill();
+			printf("filled %d cells\n", autofill());
 			break;
 		case RESET:
 			restart(board);

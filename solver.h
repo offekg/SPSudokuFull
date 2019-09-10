@@ -29,7 +29,7 @@ int* generate_options(Board* b, int row, int col, int is_random);
  * Returns 1 if no errors found. 0 if cells were marked.
  * Fixed cells can not be erroneous (so they are not marked).
  */
-int mark_erroneous_cells(Board* b,int row, int col);
+int mark_erroneous_cells(Cell** game_board,int block_rows,int block_cols,int row, int col);
 
 /*
  * Function checks given board for erroneous cells.
