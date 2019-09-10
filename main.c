@@ -9,6 +9,7 @@
 #include "solver.h"
 #include "SPBufferset.h"
 #include "main_aux.h"
+#include "board_utils.h"
 
 #define MAX_COMMAND_SIZE 256
 

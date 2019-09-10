@@ -2,6 +2,7 @@
 #define MAIN_AUX_H_
 
 #include "game.h"
+#include "board_utils.h"
 
 /*
  * Checks if reached EOF. if so - exists gracfully, as if given "exit" command.

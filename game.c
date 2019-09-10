@@ -124,7 +124,6 @@ void set(Board* b, int col, int row, int inserted_val){
 		return;
 	}
 
-	//if(inserted_val == 0 || check_valid_value(board, inserted_val, row, col, 0,0) == 1) {
 	if(inserted_val == 0 && game_board[row][col].value != 0)
 		board->num_empty_cells_current++;
 	if(inserted_val != 0 && game_board[row][col].value == 0)
@@ -133,7 +132,7 @@ void set(Board* b, int col, int row, int inserted_val){
 	game_board[row][col].value = inserted_val;
 	mark_erroneous_cells(game_board,b->block_rows,b->block_cols,row,col);
 	printBoard(board, 0);
-	printf("num empty cells: %d\n",board->num_empty_cells_current);
+	//printf("num empty cells: %d\n",board->num_empty_cells_current);
 	check_full_board(b);
 	return;
 }
@@ -320,6 +319,7 @@ int autofill(){
 	destroy_game_board(board->current_board,board_size);
 	board->current_board = updated_board;
 	board->num_empty_cells_current -= num_filled;
+	printf("Successfully filled %d cells\n", num_filled);
 	printBoard(board,0);
 	//printf("num empty cells now is: %d\n",board->num_empty_cells_current);
 	check_full_board(board);
@@ -378,7 +378,7 @@ void execute_command(Command* command){
 		case NUM_SOLUTIONS:
 			break;
 		case AUTOFILL:
-			printf("filled %d cells\n", autofill());
+			autofill();
 			break;
 		case RESET:
 			restart(board);

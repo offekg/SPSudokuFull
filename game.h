@@ -2,6 +2,7 @@
 #define GAME_H_
 
 #include "parser.h"
+#include "board_utils.h"
 
 
 typedef enum game_mode {
