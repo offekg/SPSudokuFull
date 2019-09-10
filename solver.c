@@ -5,6 +5,7 @@
 #include <errno.h>
 
 #include "game.h"
+#include "board_utils.h"
 
 
 /*
