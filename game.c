@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "game.h"
 #include "parser.h"
 #include "solver.h"
 
-#define MALLOC_ERROR "Error: malloc has failed"
+//#define MALLOC_ERROR "Error: malloc has failed"
 
 Board* board = NULL;
 
@@ -31,7 +32,7 @@ void SOLVE_Mode_print(){
 }
 
 void EDIT_Mode_print(){
-	printf("Game is now in INIT mode.\n");
+	printf("Game is now in EDIT mode.\n");
 	printf("In this mode you may use the following commands:\n");
 	printf("    solve, edit, print_board, set, validate, undo, redo,\n");
 	printf("    save, num_solutions, generate, reset or exit\n");
@@ -98,6 +99,21 @@ int check_full_board(Board* b){
 	return 0;
 }
 
+
+/*
+ * Function receives a board, a cell's row&col and a value;
+ * The function inserts the value in the cell, without any checks.
+ * num_empty_cells is updated appropriately.
+ */
+void set_value_simple(Board* b, int row, int col, int inserted_val){
+	if(inserted_val == 0 && b->current_board[row][col].value != 0)
+		board->num_empty_cells_current++;
+	if(inserted_val != 0 && b->current_board[row][col].value == 0)
+		board->num_empty_cells_current--;
+
+	b->current_board[row][col].value = inserted_val;
+}
+
 /*
  * For use when user enters command set.
  * If legal and possible, enters inserted_value in to cell in given column and row.
@@ -124,13 +140,9 @@ void set(Board* b, int col, int row, int inserted_val){
 		return;
 	}
 
-	if(inserted_val == 0 && game_board[row][col].value != 0)
-		board->num_empty_cells_current++;
-	if(inserted_val != 0 && game_board[row][col].value == 0)
-		board->num_empty_cells_current--;
+	set_value_simple(b, row, col, inserted_val);
 
-	game_board[row][col].value = inserted_val;
-	mark_erroneous_cells(game_board,b->block_rows,b->block_cols,row,col);
+	mark_erroneous_cells(b, row, col);
 	printBoard(board, 0);
 	//printf("num empty cells: %d\n",board->num_empty_cells_current);
 	check_full_board(b);
@@ -165,13 +177,15 @@ void exit_game(Board* board){
 /*
  * Function that recieves a path, and if possible loads the game board that is saved on it.
  * Returns 1 on success. 0 if failed to load.
+ * if mode == 0, for solve mode;
+ * mode == 1 for edit mode, and doesn't check for erroneous fixed cells.
  *
  */
-int load_board(char* path){
+int load_board(char* path, enum game_mode mode){
 	FILE* file;
 	int m,n,value,i,j;
 	int result;
-	int num_empty_cells = 0;
+	//int num_empty_cells = 0;
 	char is_dot = ' ';
 	char* checker[20];
 	if( (file = fopen(path,"r")) == NULL ){
@@ -215,10 +229,11 @@ int load_board(char* path){
 			//printf("%d ",value);
 
 			//printCell(b->current_board[i][j]);
-			if( (fscanf(file,"%c",&is_dot) != 0) && (is_dot == '.') ){
+			if(  (fscanf(file,"%c",&is_dot) != 0) && (mode == SOLVE_MODE) && (is_dot == '.') ){
+				//printf("marking %d,%d as fixed\n",j+1,i+1);
 				if(value == 0){
 					printf("Error: File is not a legal representation of a sudoku board.\n");
-					printf("EFile has an illegal fixed cell with value 0.\n");
+					printf("File has an illegal fixed cell with value 0.\n");
 					destroyBoard(board);
 					board = NULL;
 					fclose(file);
@@ -234,13 +249,18 @@ int load_board(char* path){
 				}
 				board->current_board[i][j].isFixed = 1;
 			}
+			//printf("cell %d,%d is_dot: %c\n",j+1,i+1,is_dot);
+			if( is_dot != '.' &&  !isspace(is_dot) ){
+				printf("Error: File is not a legal representation of a sudoku board.\n");
+				printf("There are non numrical cells in the file: %c.\n",is_dot);
+				destroyBoard(board);
+				board = NULL;
+				fclose(file);
+				return 0;
+			}
 			is_dot = ' ';
-
-			(board->current_board[i][j]).value = value;
-			if(value == 0)
-				num_empty_cells++;
-			else
-				mark_erroneous_cells(board->current_board,board->block_rows,board->block_cols,i,j);
+			set_value_simple(board, i, j, value);
+			mark_erroneous_cells(board,i,j);
 			//printf("cell %d,%d isError: %d\n",j+1,i+1,board->current_board[i][j].isError);
 		}
 	}
@@ -252,7 +272,7 @@ int load_board(char* path){
 		fclose(file);
 		return 0;
 	}
-	board->num_empty_cells_current = num_empty_cells;
+	//board->num_empty_cells_current = num_empty_cells;
 	fclose(file);
 	return 1;
 }
@@ -265,7 +285,11 @@ int load_board(char* path){
  *
  */
 void solve(char* path){
-	if(load_board(path) == 0)
+	if(board){
+		destroyBoard(board);
+		board = NULL;
+	}
+	if(load_board(path,SOLVE_MODE) == 0)
 		return;
 
 	if(current_mode != SOLVE_MODE){
@@ -278,13 +302,16 @@ void solve(char* path){
 
 
 void edit(char* path){
+	if(board){
+		destroyBoard(board);
+		board = NULL;
+	}
 	if(path != NULL){
-		if(load_board(path) == 0)
+		if( load_board(path,EDIT_MODE) == 0 )
 			return;
 	}
-	else{
-
-	}
+	else
+		board = create_blank_board(3,3);
 	if(current_mode != EDIT_MODE){
 		current_mode = EDIT_MODE;
 		EDIT_Mode_print();
@@ -297,7 +324,7 @@ int autofill(){
 	int num_filled = 0;
 	int* options;
 	int board_size = board->board_size;
-	Cell** updated_board = copy_game_board(board->current_board,board_size);
+	Board* updated_board = copy_Board(board);
 	if(board == NULL){
 		printf("Error: there is no board to autofill.\n");
 		return -1;
@@ -309,16 +336,20 @@ int autofill(){
 				options = generate_options(board,i,j,0);
 				//printf("num options for cell %d,%d is %d\n",i,j,options[0]);
 				if(options[0] == 1){
-					updated_board[i][j].value = options[1];
+					set_value_simple(updated_board,i,j,options[1]);
+					//updated_game_board[i][j].value = options[1];
 					num_filled++;
-					mark_erroneous_cells(updated_board,board->block_rows,board->block_cols,i,j);
+
+					mark_erroneous_cells(updated_board, i, j);
 				}
 				free(options);
 			}
 		}
-	destroy_game_board(board->current_board,board_size);
-	board->current_board = updated_board;
-	board->num_empty_cells_current -= num_filled;
+	//destroy_game_board(board->current_board,board_size);
+	//board->current_board = updated_board;
+	destroyBoard(board);
+	board = updated_board;
+	//board->num_empty_cells_current -= num_filled;
 	printf("Successfully filled %d cells\n", num_filled);
 	printBoard(board,0);
 	//printf("num empty cells now is: %d\n",board->num_empty_cells_current);
@@ -376,6 +407,7 @@ void execute_command(Command* command){
 		    //printf("Hint: set cell to %d\n", board->solution[row][col].value);
 		    break;
 		case NUM_SOLUTIONS:
+			printf("The number of solutions for the current board is %d\n",num_solutions(board));
 			break;
 		case AUTOFILL:
 			autofill();
@@ -391,8 +423,8 @@ void execute_command(Command* command){
 		    printf("Error: Invalid Command\n");
 		    break;
 	}
+	//printf("num empty cells: %d\n",board->num_empty_cells_current);
 	return;
-	//free(command);   - gets freed in main now after used
 }
 
 

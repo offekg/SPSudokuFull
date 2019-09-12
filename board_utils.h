@@ -1,13 +1,11 @@
 #ifndef BOARD_UTILS_H_
 #define BOARD_UTILS_H_
 
-#include "parser.h"
-#include "game.h"
 
-
+#define MALLOC_ERROR "Error: malloc has failed\nNow exiting game"
 
 /*
- * Struct: Cell
+ * Structure: Cell
  * 		Used to represent a cell in the board.
  *
  * 		value: an integer with the cell's current valuel
@@ -23,7 +21,7 @@ typedef struct cell_t{
 
 
 /*
- * Struct: Board
+ * Structure: Board
  * 		Represents a sudoku board.
  *
  * 		current_board: a 2D Cell array, representing the state of the actual board the user tries to solve.
@@ -96,6 +94,11 @@ void printIsError(Board* b);
  * Creates and returns a duplicate of a given game_board. (the actual matrix of cells, not Board).
  */
 Cell** copy_game_board(Cell** game_board, int board_size);
+
+/*
+ * Creates and returns a duplicate of a given Board.
+ */
+Board* copy_Board(Board* b);
 
 
 

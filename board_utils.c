@@ -7,7 +7,7 @@
 #include "parser.h"
 #include "solver.h"
 
-#define MALLOC_ERROR "Error: malloc has failed"
+//#define MALLOC_ERROR "Error: malloc has failed\nNow exiting game"
 
 
 /*
@@ -33,7 +33,7 @@ Board* create_blank_board(int blockCols, int blockRows){
 
 	if((board = (Board*) malloc(sizeof(Board))) == NULL){
 		fprintf(stderr,"%s",MALLOC_ERROR);
-		return NULL;
+		exit(0);
 	}
 	board->block_rows = blockRows;
 	board->block_cols = blockCols;
@@ -45,16 +45,21 @@ Board* create_blank_board(int blockCols, int blockRows){
 	if((solution = (Cell**) malloc(board->board_size*sizeof(Cell*))) == NULL){
 			fprintf(stderr,"%s",MALLOC_ERROR);
 			free(board);
-			return NULL;
+			exit(0);
 		}
 	if((current = (Cell**) malloc(board->board_size*sizeof(Cell*))) == NULL){
 		fprintf(stderr,"%s",MALLOC_ERROR);
 		free(board);
-		return NULL;
+		exit(0);
 	}
 	for(i = 0; i < board->board_size; i++){
 		solution[i] = (Cell*) malloc(board->board_size*sizeof(Cell));
 		current[i] = (Cell*) malloc(board->board_size*sizeof(Cell));
+		if(current[i] == NULL || solution[i] == NULL){
+			fprintf(stderr,"%s",MALLOC_ERROR);
+			free(board);
+			exit(0);
+		}
 		for(j = 0; j < board->board_size; j++){
 			createCell(&solution[i][j],0);
 			createCell(&current[i][j],0);
@@ -208,12 +213,18 @@ void generate_user_board(Board* board){
 Cell** copy_game_board(Cell** game_board, int board_size){
 	int i, j;
 	Cell** copy;
+	if(game_board == NULL)
+		return NULL;
+
 	if((copy = (Cell**) malloc(board_size*sizeof(Cell*))) == NULL){
 		fprintf(stderr,"%s",MALLOC_ERROR);
-		return NULL;
+		exit(0);
 	}
 	for(i = 0; i < board_size; i++){
-		copy[i] = (Cell*) malloc(board_size*sizeof(Cell));
+		if( (copy[i] = (Cell*) malloc(board_size*sizeof(Cell))) == NULL){
+			fprintf(stderr,"%s",MALLOC_ERROR);
+			exit(0);
+		}
 		for(j = 0; j < board_size; j++){
 			copy[i][j].value = game_board[i][j].value;
 			copy[i][j].isFixed = game_board[i][j].isFixed;
@@ -221,5 +232,30 @@ Cell** copy_game_board(Cell** game_board, int board_size){
 		}
 	}
 	return copy;
+}
+
+/*
+ * Creates and returns a duplicate of a given Board.
+ */
+Board* copy_Board(Board* b){
+	Board* copy_board;
+	if(b == NULL)
+		return NULL;
+
+	if((copy_board = (Board*) malloc(sizeof(Board))) == NULL){
+		fprintf(stderr,"%s",MALLOC_ERROR);
+		exit(0);
+	}
+
+	copy_board->block_rows = b->block_rows;
+	copy_board->block_cols = b->block_cols;
+	copy_board->board_size = b->board_size;
+	copy_board->num_empty_cells_current = b->num_empty_cells_current;
+	copy_board->num_empty_cells_solution = b->num_empty_cells_solution;
+
+	copy_board->current_board = copy_game_board(b->current_board,b->board_size);
+	copy_board->solution = copy_game_board(b->solution,b->board_size);
+
+	return copy_board;
 }
 

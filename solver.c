@@ -6,6 +6,7 @@
 
 #include "game.h"
 #include "board_utils.h"
+#include "stack.h"
 
 
 /*
@@ -72,7 +73,11 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
  * else: checks current board;
  * returns 1 if legal, 0 if not
  */
-int check_valid_value_new(Cell** game_board,int block_rows,int block_cols, int value, int row, int col, int only_fixed){
+//int check_valid_value_new(Cell** game_board,int block_rows,int block_cols, int value, int row, int col, int only_fixed){
+int check_valid_value_new(Board* b, int value, int row, int col, int only_fixed){
+	Cell** game_board = b->current_board;
+	int block_rows = b->block_rows;
+	int block_cols = b->block_cols;
 	int i, j;
 	int block_start_row, block_start_col;
 	int board_size = block_cols*block_rows;
@@ -120,16 +125,21 @@ int check_valid_value_new(Cell** game_board,int block_rows,int block_cols, int v
 
 /*
  * Function checks and marks if the current value of a given cell (by regular C row, col)
- * is erroneous with regards to other cells. Also marks other cells that clash with it.
+ * is erroneous with regards to other cells or not. Also marks\unmarks other cells that
+ * clash with it.
  * Returns 1 if no errors found. 0 if cells were marked.
  * Fixed cells can not be erroneous (so they are not marked).
  */
-int mark_erroneous_cells(Cell** game_board,int block_rows,int block_cols,int row, int col){  //need to also uncheck errors after cell change
+//int mark_erroneous_cells(Cell** game_board,int block_rows,int block_cols,int row, int col){
+int mark_erroneous_cells(Board* board, int row, int col){
+	Cell** game_board = board->current_board;
 	Cell* checked_cell = &(game_board[row][col]);
-	int board_size = block_cols*block_rows;
+	int board_size = board->board_size;
 	int value = checked_cell->value;
 	int i, j;
 	int temp;
+	int block_rows = board->block_rows;
+	int block_cols = board->block_cols;
 	int block_start_row, block_start_col;
 	//int found_error = 0;
 
@@ -143,20 +153,22 @@ int mark_erroneous_cells(Cell** game_board,int block_rows,int block_cols,int row
 	for( i = 0; i < board_size; i++ ){
 		temp = game_board[row][i].value;
 		game_board[row][i].value = 0;
-		if(game_board[row][i].isFixed == 0)
-			if(check_valid_value_new(game_board, block_rows, block_cols,temp,row, i, 0) == 1)
+		if(game_board[row][i].isFixed == 0){
+			if(check_valid_value_new(board, temp, row, i, 0) == 1)
 				game_board[row][i].isError = 0;
 			else
 				game_board[row][i].isError = 1;
+		}
 		game_board[row][i].value = temp;
 
 		temp = game_board[i][col].value;
 		game_board[i][col].value = 0;
-		if(i != row && game_board[i][col].isFixed == 0)
-			if(check_valid_value_new(game_board, block_rows, block_cols,temp,i,col, 0) == 1)
+		if(i != row && game_board[i][col].isFixed == 0){
+			if(check_valid_value_new(board, temp, i, col, 0) == 1)
 				game_board[i][col].isError = 0;
 			else
 				game_board[i][col].isError = 1;
+		}
 		game_board[i][col].value = temp;
 	}
 
@@ -170,7 +182,7 @@ int mark_erroneous_cells(Cell** game_board,int block_rows,int block_cols,int row
 			if( (i != row || j != col) && (game_board[i][j].isFixed == 0) ){
 				temp = game_board[i][j].value;
 				game_board[i][j].value = 0;
-				if(check_valid_value_new(game_board, block_rows, block_cols,temp,i, j, 0) == 1)
+				if(check_valid_value_new(board, temp, i, j, 0) == 1)
 					game_board[i][j].isError = 0;
 				else
 					game_board[i][j].isError = 1;
@@ -194,7 +206,6 @@ int mark_erroneous_cells_old(Cell** game_board,int block_rows,int block_cols,int
 	int board_size = block_cols*block_rows;
 	int value = checked_cell->value;
 	int i, j;
-	int temp;
 	int block_start_row, block_start_col;
 	//int found_error = 0;
 
@@ -267,6 +278,10 @@ int* generate_options(Board* b, int row, int col, int is_random){
 	int count = 0;
 	//printf("checking col: %d row: %d\n",col+1,row+1);
 	options = (int*) malloc(10 * sizeof(int));
+	if(options == NULL){
+		printf(MALLOC_ERROR);
+		exit(0);
+	}
 	for(value = 1; value <= b->board_size; value++){
 		if(check_valid_value(b,value,row,col,is_random,0) == 1){
 			//printf("  value %d is legal.\n",value);
@@ -289,6 +304,110 @@ void remove_option(int* options, int index_chosen){
 		options[i] = options[i+1];
 	}
 	options[0]--;
+}
+
+/*
+ * Given a board, the function finds the first cell that is empty,
+ * and puts it's row and col values in the given pointers.
+ * If no empty cell exists, the functions returns 0. If it does, returns 1.
+ */
+int find_first_empty_cell(Board* b, int* row, int* col){
+	int i,j;
+	for( i = 0; i < b->board_size; i++ ){
+		for( j = 0; j < b->board_size; j++ ){
+			if( b->current_board[i][j].value == 0 ){
+				*row = i;
+				*col = j;
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+/*
+ * Functions recieves a board, and returns the number of possible solutions for
+ * the board's current state, using Exhaustive Backtracking on a Stack.
+ * should work on a copy
+ */
+int num_solutions(Board* b){
+	Stack* stack;
+	StackElem* elem;
+	int num_sol = 0;
+	int is_random = 0;
+	int i,j,k;
+	int row, col;
+	int index_chosen = 0;
+	int* options;
+	int num_options;
+	int cur_num_options;
+	Cell** game_board = b->current_board;
+	int relevent_empty_cells = b->num_empty_cells_current;
+
+	/* ====================================== */
+	 /* "Stopping" condition - if relevent board has no more empty cells, then a solution was found */
+
+	if(check_board_errors(b) == 1)
+	/*if the board has errors then there is no solution*/
+		return 0;
+
+	if(relevent_empty_cells == 0)
+	/*if there are no errors and no empty cells, then there is one solution*/
+		return 1;
+
+
+	stack = initialize_stack();
+	/* find first empty cell, find options to fill it and try them */
+	find_first_empty_cell(b, &row, &col);
+
+	push(stack,row,col,1);
+
+	while(!is_empty(stack)){
+		elem = pop(stack);
+		//if(check_valid_value_new(game_board,))
+	}
+	for( i = 0; i < b->board_size; i++ ){
+		for( j = 0; j < b->board_size; j++ ){
+			if( game_board[i][j].value == 0 ){
+				/* printf("Checking options for %d,%d\n",i,j); */
+				options = generate_options(b, i, j, is_random);
+
+				num_options = options[0];
+				for( k = 1; k <= num_options; k++ ){
+
+					/*printf("num options for %d,%d: %d\n",i,j,cur_num_options);
+					printf("options: ");
+					for(l = 1; l <= cur_num_options; l++){
+						printf("%d ",options[l]);
+					}
+
+					printf("\n");*/
+
+					game_board[i][j].value = options[k];
+					relevent_empty_cells -= 1;
+					num_sol += num_solutions(b) + 1;
+					if( num_solutions(b) == 1 ){
+						free(options);
+						return num_sol + 1;
+					}
+					/* if code reaches here it means it failed to find solution with [i][j] = options[index_chosen]. */
+					relevent_empty_cells += 1;
+					if(is_random == 1){
+						/*printf("***removing %d***\n",options[index_chosen]);*/
+						remove_option(options, index_chosen);
+					}
+
+
+				}
+				/* No legal solution for current state of board. Will backtrack. */
+				game_board[i][j].value = 0;
+				free(options);
+				return 0;
+			}
+		}
+	}
+
+	destroy_stack(stack);
+	return num_sol;
 }
 
 /*

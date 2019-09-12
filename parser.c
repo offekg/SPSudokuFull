@@ -9,7 +9,7 @@
 #include "game.h"
 
 #define DELIMITER " \t\r\n"
-#define MALLOC_ERROR "Error: malloc has failed. Now terminating.\n"
+//#define MALLOC_ERROR "Error: malloc has failed. Now terminating.\n"
 
 
 /*
