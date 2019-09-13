@@ -324,6 +324,27 @@ int find_first_empty_cell(Board* b, int* row, int* col){
 	}
 	return 0;
 }
+
+/*
+ * Function is given a board and a cell's row and col;
+ * It finds and returns the next (bigger) valid value to put in the cell, that is closest
+ * to the current value.
+ * If no bigger value is valid, returns 0.
+ * for use in num_solutions
+ */
+int find_next_valid_value(Board* b, int row, int col){
+	int current_value = b->current_board[row][col].value;
+	int next_value;
+
+	for(next_value = current_value + 1; next_value <= b->board_size; next_value++)
+		if(check_valid_value_new(b,next_value,row,col,0) == 1)
+			//printf("  value %d is legal.\n",value);
+			return next_value;
+
+	return 0;
+}
+
+
 /*
  * Functions recieves a board, and returns the number of possible solutions for
  * the board's current state, using Exhaustive Backtracking on a Stack.
@@ -333,80 +354,101 @@ int num_solutions(Board* b){
 	Stack* stack;
 	StackElem* elem;
 	int num_sol = 0;
-	int is_random = 0;
-	int i,j,k;
+	int next_value;
 	int row, col;
-	int index_chosen = 0;
-	int* options;
-	int num_options;
-	int cur_num_options;
-	Cell** game_board = b->current_board;
-	int relevent_empty_cells = b->num_empty_cells_current;
 
 	/* ====================================== */
-	 /* "Stopping" condition - if relevent board has no more empty cells, then a solution was found */
 
-	if(check_board_errors(b) == 1)
+	if(check_board_errors(b) == 1){
 	/*if the board has errors then there is no solution*/
+		printf("exit 1\n");
 		return 0;
+	}
 
-	if(relevent_empty_cells == 0)
+	if(b->num_empty_cells_current == 0)
 	/*if there are no errors and no empty cells, then there is one solution*/
 		return 1;
 
+	/* find first empty cell, find smallest option to fill it with */
+	find_first_empty_cell(b, &row, &col);
+	next_value = find_next_valid_value(b,row,col);
+	if(next_value == 0){
+		printf("exit 2\n");
+		return 0;
+	}
 
 	stack = initialize_stack();
-	/* find first empty cell, find options to fill it and try them */
-	find_first_empty_cell(b, &row, &col);
-
-	push(stack,row,col,1);
+	push(stack, row, col, next_value);
 
 	while(!is_empty(stack)){
 		elem = pop(stack);
-		//if(check_valid_value_new(game_board,))
-	}
-	for( i = 0; i < b->board_size; i++ ){
-		for( j = 0; j < b->board_size; j++ ){
-			if( game_board[i][j].value == 0 ){
-				/* printf("Checking options for %d,%d\n",i,j); */
-				options = generate_options(b, i, j, is_random);
+		set_value_simple(b,elem->row,elem->col,elem->value);
 
-				num_options = options[0];
-				for( k = 1; k <= num_options; k++ ){
-
-					/*printf("num options for %d,%d: %d\n",i,j,cur_num_options);
-					printf("options: ");
-					for(l = 1; l <= cur_num_options; l++){
-						printf("%d ",options[l]);
-					}
-
-					printf("\n");*/
-
-					game_board[i][j].value = options[k];
-					relevent_empty_cells -= 1;
-					num_sol += num_solutions(b) + 1;
-					if( num_solutions(b) == 1 ){
-						free(options);
-						return num_sol + 1;
-					}
-					/* if code reaches here it means it failed to find solution with [i][j] = options[index_chosen]. */
-					relevent_empty_cells += 1;
-					if(is_random == 1){
-						/*printf("***removing %d***\n",options[index_chosen]);*/
-						remove_option(options, index_chosen);
-					}
-
-
-				}
-				/* No legal solution for current state of board. Will backtrack. */
-				game_board[i][j].value = 0;
-				free(options);
-				return 0;
+		if(b->num_empty_cells_current == 0){
+		/*Found a solution. now we try to find more by backtracking and incrementing*/
+			num_sol++;
+			while( (next_value = find_next_valid_value(b,elem->row,elem->col) == 0) && !is_empty(stack) ){
+				//problem with is_empty, cause in begining ther isnt more than one elem in stack
+				set_value_simple(b,elem->row,elem->col,0);
+				free(elem);
+				elem = pop(stack);
 			}
+			if( (is_empty(stack)) && (next_value == 0) ){
+			/*finished going through all fill options*/
+				free(elem);
+				continue;
+				//destroy_stack(stack);
+				//return num_sol;
+			}
+			else
+				push(stack, row, col, next_value);
 		}
+		else{
+		/*Board not full yet. find next empty cell, and push it to stack with next valid value*/
+			find_first_empty_cell(b, &row, &col);
+			next_value = find_next_valid_value(b, row, col);
+			if(next_value != 0){
+				push(stack, row, col, next_value);
+			}
+			else{
+				while( (next_value = find_next_valid_value(b,elem->row,elem->col) == 0) && !is_empty(stack) ){
+					set_value_simple(b,elem->row,elem->col,0);
+					free(elem);
+					elem = pop(stack);
+				}
+				if( (is_empty(stack)) && (next_value == 0) ){
+				/*finished going through all fill options*/
+					free(elem);
+					continue;
+					//destroy_stack(stack);
+					//return num_sol;
+				}
+				else
+					push(stack, elem->row, elem->col, next_value);
+			}
+			/*while( (next_value == 0) && !is_empty(stack) ){
+				next_value = find_next_valid_value(b,elem->row,elem->col);
+				row = elem->row;
+				col = elem->col;
+				free(elem);
+				elem = pop(stack);
+			}
+			if( (is_empty(stack)) && (next_value == 0) ){
+				free(elem);
+				continue;
+				//destroy_stack(stack);
+				//return num_sol;
+			}
+			else
+				push(stack, row, col, next_value);*/
+
+		}
+		printBoard(b,0);
+		free(elem);
 	}
 
 	destroy_stack(stack);
+	printf("Exit 3\n");
 	return num_sol;
 }
 

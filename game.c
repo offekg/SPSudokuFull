@@ -407,6 +407,7 @@ void execute_command(Command* command){
 		    //printf("Hint: set cell to %d\n", board->solution[row][col].value);
 		    break;
 		case NUM_SOLUTIONS:
+			printf("Now starting to calculate number of solutions.\nThis could take a while.\n");
 			printf("The number of solutions for the current board is %d\n",num_solutions(board));
 			break;
 		case AUTOFILL:

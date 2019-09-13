@@ -55,6 +55,7 @@ void push(Stack* stk, int row, int col, int value){
 /*
  * The function removes and returns a pointer to the top elemant
  * of the given stack. If stack is empty, returns NULL.
+ * When you finish with the elemant, you have to free it.
  */
 StackElem* pop(Stack* stk){
 	StackElem* temp;
