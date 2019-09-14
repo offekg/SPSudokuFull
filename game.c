@@ -359,6 +359,61 @@ int autofill(){
 }
 
 /*
+ * Function uses ILP to check if the given board has a solution
+ * or not.
+ * Returns 1 if a solutions was found.
+ * Otherwise returns 0.
+ */
+int validate_board(Board* board){
+
+	return 0;
+}
+
+/*
+ * Function receives a path (full or relative), and tries to save the current board
+ * in the file at the path given, by known format.
+ * In EDIT mode:
+ * 		- Erroneous boards or boards with no solution won't be saved.
+ * 		- All cells are marked as fixed.
+ */
+void save(char* path){
+	FILE* file;
+	int i,j;
+	Cell* cell;
+
+	if(current_mode == EDIT_MODE){
+		if(check_board_errors(board) == 1){
+			printf("Error: The board currently has errors, so it can't be saved.\n");
+			return;
+		}
+		if(validate_board(board) == 0){
+			printf("Error: The board has no solution, so it can't be saved.\n");
+			return;
+		}
+	}
+
+	if( (file = fopen(path,"w")) == NULL ){
+		printf("Error: failed to open board file at the path you have given -\n%s\n",path);
+		return;
+	}
+
+	fprintf(file,"%d %d\n", board->block_rows, board->block_cols);
+	for(i = 0; i < board->board_size; i++){
+		for(j = 0; j < board->board_size; j++){
+			cell = &(board->current_board[i][j]);
+			fprintf(file,"%d", cell->value);
+			if((current_mode == EDIT_MODE && cell->value != 0) || cell->isFixed == 1)
+				fprintf(file,".");
+			if(j != board->board_size - 1)
+				fprintf(file," ");
+		}
+		fprintf(file,"\n");
+	}
+	//fprintf(file,"sdfsdfsd");
+	fclose(file);
+}
+
+/*
  *Recieves given command from user, and implements it appropriately.
  */
 void execute_command(Command* command){
@@ -366,7 +421,6 @@ void execute_command(Command* command){
 	int row = command->params[1] - 1;
 	int inserted_val = command->params[2];
 	int binary_param = command->params[0];
-	Stack* stack;
 	//char* path = command->path_param;
 
 	switch(command->id) {
@@ -400,6 +454,7 @@ void execute_command(Command* command){
 		case REDO:
 			break;
 		case SAVE:
+			save(command->path_param);
 			break;
 		case HINT:
 		    if(col < 0 || row < 0 || board->num_empty_cells_current == 0 || command->param_counter < 2){
