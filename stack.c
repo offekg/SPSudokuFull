@@ -82,11 +82,27 @@ StackElem* top(Stack* stk){
  * Returns 1 if it is empty, 0 otherwise.
  */
 int is_empty(Stack* stk){
+	//printf("Checking is_empty\n");
 	if(stk->count == 0)
 		return 1;
 
 	return 0;
 }
 
+void print_StackElem(StackElem* elem){
+	printf("elem is: %d,%d, value-%d\n",elem->col+1,elem->row+1,elem->value);
+}
+
+void print_Stack(Stack* stk){
+	StackElem* temp = stk->top;
+	int count = 1;
+	while(temp != NULL){
+		printf("%d",count);
+		print_StackElem(temp);
+		temp = temp->next;
+		count++;
+	}
+	printf("***end of stack***\n");
+}
 
 

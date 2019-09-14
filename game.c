@@ -7,6 +7,7 @@
 #include "game.h"
 #include "parser.h"
 #include "solver.h"
+#include "stack.h"
 
 //#define MALLOC_ERROR "Error: malloc has failed"
 
@@ -365,6 +366,7 @@ void execute_command(Command* command){
 	int row = command->params[1] - 1;
 	int inserted_val = command->params[2];
 	int binary_param = command->params[0];
+	Stack* stack;
 	//char* path = command->path_param;
 
 	switch(command->id) {
@@ -407,7 +409,7 @@ void execute_command(Command* command){
 		    //printf("Hint: set cell to %d\n", board->solution[row][col].value);
 		    break;
 		case NUM_SOLUTIONS:
-			printf("Now starting to calculate number of solutions.\nThis could take a while.\n");
+			printf("Now starting to calculate number of solutions.\nThis could take a while.\n\n");
 			printf("The number of solutions for the current board is %d\n",num_solutions(board));
 			break;
 		case AUTOFILL:

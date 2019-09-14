@@ -72,5 +72,8 @@ StackElem* top(Stack* stk);
  */
 int is_empty(Stack* stk);
 
+void print_StackElem(StackElem* elem);
+
+void print_Stack(Stack* stk);
 
 #endif /* STACK_H_ */
