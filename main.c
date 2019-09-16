@@ -18,7 +18,8 @@ int mark_errors = 1;
 
 void eventual_main(){
 	Command* command;
-	//Board* board;
+	/*Board* board;*/
+	TurnsList* turns = initialize_turn_list();
 	char userInput[MAX_COMMAND_SIZE+2] = { 0 };
 
 	opening_message();
@@ -32,7 +33,7 @@ void eventual_main(){
 			if (ferror(stdin)) {
 				printf("Error: fgets has failed\n");
 			}
-			//destroyBoard(board);
+			/*destroyBoard(board);*/
 			printf("Exiting...\n");
 			exit(0);
 		}
@@ -50,10 +51,11 @@ void eventual_main(){
 			 */
 			continue;
 		}
-		execute_command(command);
+		execute_command(command, turns);
 		destroy_command_object(command);
 	}
-	//destroyBoard(board);
+	/*destroyBoard(board);*/
+	destroy_turn_list(turns);
 }
 
 
@@ -76,7 +78,7 @@ void check_fscanf(char* path){
 	char* checker[20];// = {0};
 	if( (file = fopen(path,"r")) == NULL ){
 		printf("Error: failed to open board file at the path you have given -\n%s\n",path);
-		//perror("Error: failed to open board file at the path you have given - %s\n%s\n",*path,strerror(errno));
+		/*perror("Error: failed to open board file at the path you have given - %s\n%s\n",*path,strerror(errno));*/
 		return;
 	}
 	if(fscanf(file,"%d",&m) <= 0 || fscanf(file,"%d",&n) <= 0){
@@ -111,9 +113,9 @@ void check_fscanf(char* path){
 				fclose(file);
 				return;
 			}
-			//printf("%d ",value);
+			/*printf("%d ",value);*/
 
-			//printCell(b->current_board[i][j]);
+			/*printCell(b->current_board[i][j]);*/
 			if( (fscanf(file,"%c",&is_dot) != 0) && (is_dot == '.') ){
 				if(value == 0){
 					printf("Error: File has illegal fixed cell with value 0.\n");
@@ -133,10 +135,10 @@ void check_fscanf(char* path){
 			is_dot = ' ';
 			(b->current_board[i][j]).value = value;
 		}
-		//printf("\n");
+		/*printf("\n");*/
 	}
 	if(((m = fscanf(file,"%20s",*checker)) > 0)){
-		//printf("fscanf result: %d  checker: %s\n",m,*checker);
+		/*printf("fscanf result: %d  checker: %s\n",m,*checker);*/
 		printf("Error: File is not a legal representation of a sudoku board.\n");
 		printf("It has too many values compared to the given board size.\n");
 		destroyBoard(b);
@@ -144,7 +146,7 @@ void check_fscanf(char* path){
 		return;
 	}
 	fclose(file);
-	current_mode = SOLVE;
+	current_mode = SOLVE_MODE;
 	printBoard(b,0);
 	return;
 }
@@ -154,8 +156,8 @@ int main(int argc, char *argv[]){
 	if(argc > 1)
 		srand(atoi(argv[1]));
 	SP_BUFF_SET();
-	//char *path = "C:\\Users\\offek\\eclipse-c-workspace\\SPSudokuFull\\Board_files\\fixed.txt";
-	//check_fscanf(path);
+	/*char *path = "C:\\Users\\offek\\eclipse-c-workspace\\SPSudokuFull\\Board_files\\fixed.txt";*/
+	/*check_fscanf(path);*/
 	/*int x;
 	char y[5], a[5], b[5], c[5];
 	x = scanf("%10s %s %s",y,a,b);

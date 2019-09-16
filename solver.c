@@ -22,7 +22,7 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 	Cell** game_board;
 
 	if(value > b->board_size || value < 0){
-		//printf("Problem 0\n");
+		/*printf("Problem 0\n");*/
 		return 0;
 	}
 	if(value == 0)
@@ -38,12 +38,12 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 	 */
 	for( i = 0; i < b->board_size; i++ ){
 		if(game_board[row][i].value == value && i != col){
-			//printf("Problem 1\n");
+			/*printf("Problem 1\n");*/
 			if(only_fixed == 0 || game_board[row][i].isFixed == 1)
 				return 0;
 		}
 		if(game_board[i][col].value == value && i != row){
-			//printf("Problem 2\n");
+			/*printf("Problem 2\n");*/
 			if(only_fixed == 0 || game_board[i][col].isFixed == 1)
 				return 0;
 		}
@@ -57,7 +57,7 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 	for( i = block_start_row; i < (block_start_row + b->block_rows); i++){
 		for( j = block_start_col; j < (block_start_col + b->block_cols); j++){
 			if(game_board[i][j].value == value && (i != row || j != col)){
-				//printf("Problem 3\n");
+				/*printf("Problem 3\n");*/
 				if(only_fixed == 0 || game_board[i][j].isFixed == 1)
 					return 0;
 			}
@@ -83,7 +83,7 @@ int check_valid_value_new(Board* b, int value, int row, int col, int only_fixed)
 	int board_size = block_cols*block_rows;
 
 	if(value > board_size || value < 0){
-		//printf("Problem 0\n");
+		/*printf("Problem 0\n");*/
 		return 0;
 	}
 	if(value == 0)
@@ -94,12 +94,12 @@ int check_valid_value_new(Board* b, int value, int row, int col, int only_fixed)
 	 */
 	for( i = 0; i < board_size; i++ ){
 		if(game_board[row][i].value == value && i != col){
-			//printf("Problem 1\n");
+			/*printf("Problem 1\n");*/
 			if(only_fixed == 0 || game_board[row][i].isFixed == 1)
 				return 0;
 		}
 		if(game_board[i][col].value == value && i != row){
-			//printf("Problem 2\n");
+			/*printf("Problem 2\n");*/
 			if(only_fixed == 0 || game_board[i][col].isFixed == 1)
 				return 0;
 		}
@@ -113,7 +113,7 @@ int check_valid_value_new(Board* b, int value, int row, int col, int only_fixed)
 	for( i = block_start_row; i < (block_start_row + block_rows); i++){
 		for( j = block_start_col; j < (block_start_col + block_cols); j++){
 			if(game_board[i][j].value == value && (i != row || j != col)){
-				//printf("Problem 3\n");
+				/*printf("Problem 3\n");*/
 				if(only_fixed == 0 || game_board[i][j].isFixed == 1)
 					return 0;
 			}
@@ -141,7 +141,7 @@ int mark_erroneous_cells(Board* board, int row, int col){
 	int block_rows = board->block_rows;
 	int block_cols = board->block_cols;
 	int block_start_row, block_start_col;
-	//int found_error = 0;
+	/*int found_error = 0;*/
 
 	if(value == 0)
 		return 1;
@@ -207,7 +207,7 @@ int mark_erroneous_cells_old(Cell** game_board,int block_rows,int block_cols,int
 	int value = checked_cell->value;
 	int i, j;
 	int block_start_row, block_start_col;
-	//int found_error = 0;
+	/*int found_error = 0;*/
 
 	if(value == 0)
 		return 1;
@@ -218,13 +218,13 @@ int mark_erroneous_cells_old(Cell** game_board,int block_rows,int block_cols,int
 	 */
 	for( i = 0; i < board_size; i++ ){
 		if( game_board[row][i].value == value && i != col ){
-			//printf("Problem 1\n");
+			/*printf("Problem 1\n");*/
 			checked_cell->isError = 1;
 			if(game_board[row][i].isFixed == 0)
 				game_board[row][i].isError = 1;
 		}
 		if( game_board[i][col].value == value && i != row ){
-			//printf("Problem 2\n");
+			/*printf("Problem 2\n");*/
 			checked_cell->isError = 1;
 			if(game_board[i][col].isFixed == 0)
 				game_board[i][col].isError = 1;
@@ -239,7 +239,7 @@ int mark_erroneous_cells_old(Cell** game_board,int block_rows,int block_cols,int
 	for( i = block_start_row; i < (block_start_row + block_rows); i++){
 		for( j = block_start_col; j < (block_start_col + block_cols); j++){
 			if(game_board[i][j].value == value && (i != row || j != col)){
-				//printf("Problem 3\n");
+				/*printf("Problem 3\n");*/
 				checked_cell->isError = 1;
 				if(game_board[i][j].isFixed == 0)
 					game_board[i][j].isError = 1;
@@ -276,7 +276,7 @@ int* generate_options(Board* b, int row, int col, int is_random){
 	int* options;
 	int value;
 	int count = 0;
-	//printf("checking col: %d row: %d\n",col+1,row+1);
+	/*printf("checking col: %d row: %d\n",col+1,row+1);*/
 	options = (int*) malloc(10 * sizeof(int));
 	if(options == NULL){
 		printf(MALLOC_ERROR);
@@ -284,7 +284,7 @@ int* generate_options(Board* b, int row, int col, int is_random){
 	}
 	for(value = 1; value <= b->board_size; value++){
 		if(check_valid_value(b,value,row,col,is_random,0) == 1){
-			//printf("  value %d is legal.\n",value);
+			/*printf("  value %d is legal.\n",value);*/
 			count++;
 			options[count] = value;
 		}
@@ -336,12 +336,12 @@ int find_next_valid_value(Board* b, int row, int col){
 	int current_value = b->current_board[row][col].value;
 	int next_value;
 	for(next_value = current_value + 1; next_value <= b->board_size; next_value++){
-		//printf("checking %d, ",next_value);
+		/*printf("checking %d, ",next_value);*/
 		if(check_valid_value_new(b,next_value,row,col,0) == 1){
-			//printf("\nfound next valid: %d\n",next_value);
+			/*printf("\nfound next valid: %d\n",next_value);*/
 			return next_value;}
 	}
-	//printf("\nnothing is valid,returning 0\n");
+	/*printf("\nnothing is valid,returning 0\n");*/
 	return 0;
 }
 

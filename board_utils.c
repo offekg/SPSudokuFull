@@ -7,7 +7,7 @@
 #include "parser.h"
 #include "solver.h"
 
-//#define MALLOC_ERROR "Error: malloc has failed\nNow exiting game"
+/*#define MALLOC_ERROR "Error: malloc has failed\nNow exiting game"*/
 
 
 /*

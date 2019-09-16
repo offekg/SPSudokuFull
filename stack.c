@@ -82,7 +82,7 @@ StackElem* top(Stack* stk){
  * Returns 1 if it is empty, 0 otherwise.
  */
 int is_empty(Stack* stk){
-	//printf("Checking is_empty\n");
+	/*printf("Checking is_empty\n");*/
 	if(stk->count == 0)
 		return 1;
 

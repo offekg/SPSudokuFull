@@ -8,8 +8,10 @@
 #include "parser.h"
 #include "solver.h"
 #include "stack.h"
+#include "linked_list.h"
 
-//#define MALLOC_ERROR "Error: malloc has failed"
+
+/*#define MALLOC_ERROR "Error: malloc has failed"*/
 
 Board* board = NULL;
 
@@ -121,8 +123,9 @@ void set_value_simple(Board* b, int row, int col, int inserted_val){
  * If command was legal, prints the new board.
  * If also the board is now full - prints that the user has solved the puzzle.
  */
-void set(Board* b, int col, int row, int inserted_val){
+void set(Board* b, int col, int row, int inserted_val, TurnsList* turns) {
 	Cell** game_board = b->current_board;
+	MovesList* moves = initialize_move_list();
 	int board_size = b->board_size;
 	if(col < 0 || col > board_size){
 		printf("Error: Invalid Command - Column (first) paramater is out of the range 1-%d.\n",board_size);
@@ -141,12 +144,16 @@ void set(Board* b, int col, int row, int inserted_val){
 		return;
 	}
 
+	add_move(moves, row, col, game_board[row][col].value, inserted_val);
+	add_turn(turns, moves);
+
 	set_value_simple(b, row, col, inserted_val);
 
 	mark_erroneous_cells(b, row, col);
 	printBoard(board, 0);
-	//printf("num empty cells: %d\n",board->num_empty_cells_current);
+	/*printf("num empty cells: %d\n",board->num_empty_cells_current);*/
 	check_full_board(b);
+
 	return;
 }
 
@@ -186,7 +193,7 @@ int load_board(char* path, enum game_mode mode){
 	FILE* file;
 	int m,n,value,i,j;
 	int result;
-	//int num_empty_cells = 0;
+	/*int num_empty_cells = 0;*/
 	char is_dot = ' ';
 	char* checker[20];
 	if( (file = fopen(path,"r")) == NULL ){
@@ -204,7 +211,7 @@ int load_board(char* path, enum game_mode mode){
 		fclose(file);
 		return 0;
 	}
-	//printf("n: %d m: %d\n",n,m);
+	/*printf("n: %d m: %d\n",n,m);*/
 	board = create_blank_board(n,m);
 	for(i = 0; i < n*m; i++){
 		for(j = 0; j < n*m; j++){
@@ -227,11 +234,11 @@ int load_board(char* path, enum game_mode mode){
 				fclose(file);
 				return 0;
 			}
-			//printf("%d ",value);
+			/*printf("%d ",value);*/
 
-			//printCell(b->current_board[i][j]);
+			/*printCell(b->current_board[i][j]);*/
 			if(  (fscanf(file,"%c",&is_dot) != 0) && (mode == SOLVE_MODE) && (is_dot == '.') ){
-				//printf("marking %d,%d as fixed\n",j+1,i+1);
+				/*printf("marking %d,%d as fixed\n",j+1,i+1);*/
 				if(value == 0){
 					printf("Error: File is not a legal representation of a sudoku board.\n");
 					printf("File has an illegal fixed cell with value 0.\n");
@@ -250,7 +257,7 @@ int load_board(char* path, enum game_mode mode){
 				}
 				board->current_board[i][j].isFixed = 1;
 			}
-			//printf("cell %d,%d is_dot: %c\n",j+1,i+1,is_dot);
+			/*printf("cell %d,%d is_dot: %c\n",j+1,i+1,is_dot);*/
 			if( is_dot != '.' &&  !isspace(is_dot) ){
 				printf("Error: File is not a legal representation of a sudoku board.\n");
 				printf("There are non numrical cells in the file: %c.\n",is_dot);
@@ -262,18 +269,18 @@ int load_board(char* path, enum game_mode mode){
 			is_dot = ' ';
 			set_value_simple(board, i, j, value);
 			mark_erroneous_cells(board,i,j);
-			//printf("cell %d,%d isError: %d\n",j+1,i+1,board->current_board[i][j].isError);
+			/*printf("cell %d,%d isError: %d\n",j+1,i+1,board->current_board[i][j].isError);*/
 		}
 	}
 	if(((m = fscanf(file,"%20s",*checker)) > 0)){
-		//printf("fscanf result: %d  checker: %s\n",m,*checker);
+		/*printf("fscanf result: %d  checker: %s\n",m,*checker);*/
 		printf("Error: File is not a legal representation of a sudoku board.\n");
 		printf("It has too many values compared to the given board size.\n");
 		destroyBoard(board);
 		fclose(file);
 		return 0;
 	}
-	//board->num_empty_cells_current = num_empty_cells;
+	/*board->num_empty_cells_current = num_empty_cells;*/
 	fclose(file);
 	return 1;
 }
@@ -320,40 +327,45 @@ void edit(char* path){
 	printBoard(board,0);
 }
 
-int autofill(){
+int autofill(TurnsList* turns){
 	int i,j;
 	int num_filled = 0;
 	int* options;
+	MovesList* moves;
 	int board_size = board->board_size;
 	Board* updated_board = copy_Board(board);
+
 	if(board == NULL){
 		printf("Error: there is no board to autofill.\n");
 		return -1;
 	}
-	//printf("num empty cells now is: %d\n",board->num_empty_cells_current);
+	/*printf("num empty cells now is: %d\n",board->num_empty_cells_current);*/
 	for(i = 0; i < board_size; i++)
 		for(j = 0; j < board_size; j++){
 			if(board->current_board[i][j].value == 0){
 				options = generate_options(board,i,j,0);
-				//printf("num options for cell %d,%d is %d\n",i,j,options[0]);
+				/*printf("num options for cell %d,%d is %d\n",i,j,options[0]);*/
 				if(options[0] == 1){
 					set_value_simple(updated_board,i,j,options[1]);
-					//updated_game_board[i][j].value = options[1];
+					/*updated_game_board[i][j].value = options[1];*/
 					num_filled++;
+					moves = initialize_move_list();
+					add_move(moves, i, j, updated_board->current_board[i][j].value, options[1]);
+					add_turn(turns, moves);
 
 					mark_erroneous_cells(updated_board, i, j);
 				}
 				free(options);
 			}
 		}
-	//destroy_game_board(board->current_board,board_size);
-	//board->current_board = updated_board;
+	/*destroy_game_board(board->current_board,board_size);*/
+	/*board->current_board = updated_board;*/
 	destroyBoard(board);
 	board = updated_board;
-	//board->num_empty_cells_current -= num_filled;
+	/*board->num_empty_cells_current -= num_filled;*/
 	printf("Successfully filled %d cells\n", num_filled);
 	printBoard(board,0);
-	//printf("num empty cells now is: %d\n",board->num_empty_cells_current);
+	/*printf("num empty cells now is: %d\n",board->num_empty_cells_current);*/
 	check_full_board(board);
 	return num_filled;
 }
@@ -409,19 +421,94 @@ void save(char* path){
 		}
 		fprintf(file,"\n");
 	}
-	//fprintf(file,"sdfsdfsd");
+	/*fprintf(file,"sdfsdfsd");*/
 	fclose(file);
 }
 
 /*
- *Recieves given command from user, and implements it appropriately.
+ * For use when user enters command undo.
+ * If legal and possible, reverts the last move the user made
+ * If command was legal, prints the new board.
  */
-void execute_command(Command* command){
+void undo(Board* b, TurnsList* turns, int to_print){
+	Node* move;\
+
+	if (turns->position_in_list == 0) {
+		printf("No turns to undo\n");
+		return;
+	}
+
+	move = turns->current_move->current_changes->top;
+	while (move) {
+		set_value_simple(b, move->row, move->col, move->previous_val);
+		if (to_print) {
+			printf("Cell <%d,%d> has been modified back to %d\n", move->row,
+					move->col, move->previous_val);
+		}
+		move = move->next;
+	}
+
+	if (turns->position_in_list != 1) {
+		turns->current_move = turns->current_move->previous;
+	}
+
+	turns->position_in_list -= 1;
+	return;
+}
+
+/*
+ * For use when user enters command redo.
+ * If legal and possible, redos the last move the user made
+ * If command was legal, prints the new board.
+ */
+void redo(Board* b, TurnsList* turns, int to_print){
+	Node* move;
+	if (turns->length == 0 || turns->position_in_list == turns->length) {
+		printf("No turns to redo\n");
+		return;
+	}
+
+	if (turns->position_in_list == 0){
+		move = turns->current_move->current_changes->top;
+	} else{
+		move = turns->current_move->next->current_changes->top;
+	}
+
+	while (move) {
+		set_value_simple(b, move->row, move->col, move->new_val);
+		if (to_print) {
+			printf("Cell <%d,%d> has been modified back to %d\n", move->row,
+					move->col, move->new_val);
+		}
+		move = move->next;
+	}
+
+	if (turns->position_in_list != 0) {
+		turns->current_move = turns->current_move->next;
+	}
+	turns->position_in_list += 1;
+	return;
+}
+
+/*
+ * For use when user enters command reset.
+ */
+void reset_board(Board* b, TurnsList* turns) {
+	while (turns->position_in_list > 0) {
+		undo(b, turns, 0);
+	}
+}
+
+
+/*
+ *Receives given command from user, and implements it appropriately.
+ */
+void execute_command(Command* command, TurnsList* turns){
 	int col = command->params[0] - 1;
 	int row = command->params[1] - 1;
 	int inserted_val = command->params[2];
 	int binary_param = command->params[0];
-	//char* path = command->path_param;
+	/*char* path = command->path_param;*/
 
 	switch(command->id) {
 		case SOLVE:
@@ -442,16 +529,20 @@ void execute_command(Command* command){
 			printBoard(board,0);
 			break;
 		case SET:
-			set(board, col, row, inserted_val);
+			set(board, col, row, inserted_val, turns);
 			break;
 		case VALIDATE:
-			//validate(board);
+			/*validate(board);*/
 			break;
 		case GENERATE:
 			break;
 		case UNDO:
+			undo(board, turns, 1);
+			printBoard(board, 0);
 			break;
 		case REDO:
+			redo(board, turns, 1);
+			printBoard(board, 0);
 			break;
 		case SAVE:
 			save(command->path_param);
@@ -461,17 +552,18 @@ void execute_command(Command* command){
 		    	printf("Error: Invalid command\n");
 		    	break;
 		    }
-		    //printf("Hint: set cell to %d\n", board->solution[row][col].value);
+		    /*printf("Hint: set cell to %d\n", board->solution[row][col].value);*/
 		    break;
 		case NUM_SOLUTIONS:
 			printf("Now starting to calculate number of solutions.\nThis could take a while.\n\n");
 			printf("The number of solutions for the current board is %d\n",num_solutions(board));
 			break;
 		case AUTOFILL:
-			autofill();
+			autofill(turns);
 			break;
 		case RESET:
-			restart(board);
+			reset_board(board, turns);
+			printBoard(board, 0);
 			break;
 		case EXIT:
 			destroy_command_object(command);
@@ -481,7 +573,7 @@ void execute_command(Command* command){
 		    printf("Error: Invalid Command\n");
 		    break;
 	}
-	//printf("num empty cells: %d\n",board->num_empty_cells_current);
+	/*printf("num empty cells: %d\n",board->num_empty_cells_current);*/
 	return;
 }
 

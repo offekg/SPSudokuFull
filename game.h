@@ -3,6 +3,7 @@
 
 #include "parser.h"
 #include "board_utils.h"
+#include "linked_list.h"
 
 
 typedef enum game_mode {
@@ -31,7 +32,7 @@ void set_value_simple(Board* b, int row, int col, int inserted_val);
 /*
  *Recieves given command from user, and implements it appropriately.
  */
-void execute_command(Command* command);
+void execute_command(Command* command, TurnsList* turns);
 
 
 /*
