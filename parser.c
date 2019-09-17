@@ -231,7 +231,7 @@ Command* parse_command(char* userInput) {
 		}
 
 		if(cmd_id == EDIT || cmd_id == SOLVE || cmd_id == SAVE)
-			/*strcpy(path_param,token);*/
+			//strcpy(path_param,token);
 			path_param = token;
 		else{
 			length = strlen(token);

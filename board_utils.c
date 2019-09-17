@@ -7,7 +7,7 @@
 #include "parser.h"
 #include "solver.h"
 
-/*#define MALLOC_ERROR "Error: malloc has failed\nNow exiting game"*/
+//#define MALLOC_ERROR "Error: malloc has failed\nNow exiting game"
 
 
 /*
@@ -19,6 +19,7 @@ void createCell(Cell* cell,int val){
 	cell->value = val;
 	cell->isFixed = 0;
 	cell->isError = 0;
+	cell->options = NULL;
 }
 
 /*
@@ -75,8 +76,12 @@ Board* create_blank_board(int blockCols, int blockRows){
  * Destroys properly a given game board, freeing all allocated resources.
  */
 void destroy_game_board(Cell** board, int size){
-	int i;
+	int i, j;
 	for(i = 0; i < size; i++){
+		for(j = 0; j < size; j++){
+			if(board[i][j].options != NULL)
+				free(board[i][j].options);
+		}
 		free(board[i]);
 	}
 	free(board);
