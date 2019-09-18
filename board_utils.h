@@ -11,11 +11,14 @@
  * 		value: an integer with the cell's current valuel
  * 		isFixed: represents if the cell's value is fixed or not. 1 means it's fixed, 0 means it's not.
  * 		isError: represents if the cell's current value creates an error regarding another cell in the board.
+ * 		options: an int array that can save all valid options for a cell when neede.
+ * 				 the 0 index saves how many options there are.
  */
 typedef struct cell_t{
 	int value;
 	int isFixed;
 	int isError;
+	int* options;
 
 } Cell;
 
