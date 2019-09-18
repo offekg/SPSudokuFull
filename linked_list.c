@@ -151,7 +151,7 @@ void add_turn(TurnsList* turns, MovesList* moves) {
 	node->next = NULL;
 	turns->current_move = node;
 	turns->length += 1;
-	turns->position_in_list += 1;
+	turns->position_in_list = turns->length;
 }
 
 /*
@@ -170,10 +170,11 @@ void remove_turns_after_current(TurnsList* turns) {
 		tmp = node->next;
 		destroy_move_list(node->current_changes);
 		free(node);
-		turns->length = turns->length - 1;
+		turns->length -= 1;
 		node = tmp;
 		turns->position_in_list -=1;
 	}
+	turn->next = NULL;
 }
 
 /*
