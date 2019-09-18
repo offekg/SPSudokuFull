@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,13 +30,18 @@ MovesList* initialize_move_list() {
  * Receives moves and safely frees all related memory.
  */
 void destroy_move_list(MovesList* moves) {
-	Node* node = moves->top;
+	Node* node;
 
-	while (node) {
-		node = moves->top->next;
-		free(moves->top);
-		moves->top = node;
-		moves->length = moves->length - 1;
+	if(moves != NULL){
+		node = moves->top;
+
+		while (node) {
+			node = moves->top->next;
+			free(moves->top);
+			moves->top = node;
+			moves->length = moves->length - 1;
+		}
+		free(moves);
 	}
 }
 
@@ -100,14 +106,18 @@ TurnsList* initialize_turn_list() {
  * Receives a turn and safely frees all related memory.
  */
 void destroy_turn_list(TurnsList* turns) {
-	TurnNode* node = turns->top;
+	TurnNode* node;
+	if(turns != NULL){
+		node = turns->top;
 
-	while (node) {
-		node = turns->top->next;
-		destroy_move_list(turns->top->current_changes);
-		free(turns->top);
-		turns->top = node;
-		turns->length = turns->length - 1;
+		while (node) {
+			node = turns->top->next;
+			destroy_move_list(turns->top->current_changes);
+			free(turns->top);
+			turns->top = node;
+			turns->length = turns->length - 1;
+		}
+		free(turns);
 	}
 }
 
@@ -164,4 +174,47 @@ void remove_turns_after_current(TurnsList* turns) {
 		node = tmp;
 		turns->position_in_list -=1;
 	}
+}
+
+/*
+ * Returns a copy of a given MovesList.
+ */
+MovesList* copy_moves_list(MovesList* moves){
+	MovesList* copy_moves;
+	Node* temp;
+
+	if(moves == NULL)
+		return NULL;
+
+	copy_moves = initialize_move_list();
+	temp = moves->top;
+	while(temp){
+		add_move(copy_moves,temp->row,temp->col,temp->previous_val,temp->new_val);
+		temp = temp->next;
+	}
+
+	return copy_moves;
+}
+
+/*
+ * Returns a copy of the given TurnsList.
+ */
+TurnsList* copy_turns_list(TurnsList* turns){
+	TurnsList* copy_list = initialize_turn_list();
+	TurnNode* turn_node;
+	MovesList* copy_moves;
+
+	if(turns == NULL)
+		return NULL;
+
+	copy_list = initialize_turn_list();
+	turn_node = turns->top;
+	while(turn_node){
+		copy_moves = copy_moves_list(turn_node->current_changes);
+		add_turn(copy_list,copy_moves);
+		turn_node = turn_node->next;
+	}
+	copy_list->position_in_list = turns->position_in_list;
+	copy_list->current_move = turns->current_move;
+	return copy_list;
 }

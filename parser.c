@@ -9,7 +9,6 @@
 #include "game.h"
 
 #define DELIMITER " \t\r\n"
-//#define MALLOC_ERROR "Error: malloc has failed. Now terminating.\n"
 
 
 /*
@@ -81,7 +80,7 @@ Command* create_new_command_object(int cmd_id, int params[3], int param_counter,
 	}
 	else
 		cmd->path_param = NULL;
-	//cmd->path_param = *path_param;
+	/*cmd->path_param = *path_param;*/
 	return cmd;
 }
 

@@ -22,7 +22,6 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 	Cell** game_board;
 
 	if(value > b->board_size || value < 0){
-		/*printf("Problem 0\n");*/
 		return 0;
 	}
 	if(value == 0)
@@ -38,12 +37,10 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 	 */
 	for( i = 0; i < b->board_size; i++ ){
 		if(game_board[row][i].value == value && i != col){
-			/*printf("Problem 1\n");*/
 			if(only_fixed == 0 || game_board[row][i].isFixed == 1)
 				return 0;
 		}
 		if(game_board[i][col].value == value && i != row){
-			/*printf("Problem 2\n");*/
 			if(only_fixed == 0 || game_board[i][col].isFixed == 1)
 				return 0;
 		}
@@ -57,7 +54,6 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
 	for( i = block_start_row; i < (block_start_row + b->block_rows); i++){
 		for( j = block_start_col; j < (block_start_col + b->block_cols); j++){
 			if(game_board[i][j].value == value && (i != row || j != col)){
-				/*printf("Problem 3\n");*/
 				if(only_fixed == 0 || game_board[i][j].isFixed == 1)
 					return 0;
 			}
@@ -73,7 +69,7 @@ int check_valid_value(Board* b, int value, int row, int col, int is_random, int 
  * else: checks current board;
  * returns 1 if legal, 0 if not
  */
-//int check_valid_value_new(Cell** game_board,int block_rows,int block_cols, int value, int row, int col, int only_fixed){
+/*int check_valid_value_new(Cell** game_board,int block_rows,int block_cols, int value, int row, int col, int only_fixed){*/
 int check_valid_value_new(Board* b, int value, int row, int col, int only_fixed){
 	Cell** game_board = b->current_board;
 	int block_rows = b->block_rows;
@@ -83,7 +79,6 @@ int check_valid_value_new(Board* b, int value, int row, int col, int only_fixed)
 	int board_size = block_cols*block_rows;
 
 	if(value > board_size || value < 0){
-		/*printf("Problem 0\n");*/
 		return 0;
 	}
 	if(value == 0)
@@ -94,12 +89,10 @@ int check_valid_value_new(Board* b, int value, int row, int col, int only_fixed)
 	 */
 	for( i = 0; i < board_size; i++ ){
 		if(game_board[row][i].value == value && i != col){
-			/*printf("Problem 1\n");*/
 			if(only_fixed == 0 || game_board[row][i].isFixed == 1)
 				return 0;
 		}
 		if(game_board[i][col].value == value && i != row){
-			/*printf("Problem 2\n");*/
 			if(only_fixed == 0 || game_board[i][col].isFixed == 1)
 				return 0;
 		}
@@ -113,7 +106,6 @@ int check_valid_value_new(Board* b, int value, int row, int col, int only_fixed)
 	for( i = block_start_row; i < (block_start_row + block_rows); i++){
 		for( j = block_start_col; j < (block_start_col + block_cols); j++){
 			if(game_board[i][j].value == value && (i != row || j != col)){
-				/*printf("Problem 3\n");*/
 				if(only_fixed == 0 || game_board[i][j].isFixed == 1)
 					return 0;
 			}
@@ -130,7 +122,7 @@ int check_valid_value_new(Board* b, int value, int row, int col, int only_fixed)
  * Returns 1 if no errors found. 0 if cells were marked.
  * Fixed cells can not be erroneous (so they are not marked).
  */
-//int mark_erroneous_cells(Cell** game_board,int block_rows,int block_cols,int row, int col){
+/*int mark_erroneous_cells(Cell** game_board,int block_rows,int block_cols,int row, int col){*/
 int mark_erroneous_cells(Board* board, int row, int col){
 	Cell** game_board = board->current_board;
 	Cell* checked_cell = &(game_board[row][col]);
@@ -141,7 +133,6 @@ int mark_erroneous_cells(Board* board, int row, int col){
 	int block_rows = board->block_rows;
 	int block_cols = board->block_cols;
 	int block_start_row, block_start_col;
-	/*int found_error = 0;*/
 
 	if(value == 0)
 		return 1;
@@ -201,13 +192,12 @@ int mark_erroneous_cells(Board* board, int row, int col){
  * Returns 1 if no errors found. 0 if cells were marked.
  * Fixed cells can not be erroneous (so they are not marked).
  */
-int mark_erroneous_cells_old(Cell** game_board,int block_rows,int block_cols,int row, int col){  //need to also uncheck errors after cell change
+int mark_erroneous_cells_old(Cell** game_board,int block_rows,int block_cols,int row, int col){
 	Cell* checked_cell = &(game_board[row][col]);
 	int board_size = block_cols*block_rows;
 	int value = checked_cell->value;
 	int i, j;
 	int block_start_row, block_start_col;
-	/*int found_error = 0;*/
 
 	if(value == 0)
 		return 1;
@@ -218,13 +208,11 @@ int mark_erroneous_cells_old(Cell** game_board,int block_rows,int block_cols,int
 	 */
 	for( i = 0; i < board_size; i++ ){
 		if( game_board[row][i].value == value && i != col ){
-			/*printf("Problem 1\n");*/
 			checked_cell->isError = 1;
 			if(game_board[row][i].isFixed == 0)
 				game_board[row][i].isError = 1;
 		}
 		if( game_board[i][col].value == value && i != row ){
-			/*printf("Problem 2\n");*/
 			checked_cell->isError = 1;
 			if(game_board[i][col].isFixed == 0)
 				game_board[i][col].isError = 1;
@@ -239,7 +227,6 @@ int mark_erroneous_cells_old(Cell** game_board,int block_rows,int block_cols,int
 	for( i = block_start_row; i < (block_start_row + block_rows); i++){
 		for( j = block_start_col; j < (block_start_col + block_cols); j++){
 			if(game_board[i][j].value == value && (i != row || j != col)){
-				/*printf("Problem 3\n");*/
 				checked_cell->isError = 1;
 				if(game_board[i][j].isFixed == 0)
 					game_board[i][j].isError = 1;
@@ -390,7 +377,6 @@ int num_solutions(Board* b){
 		/*Found a solution. now we try to find more by backtracking and incrementing*/
 			num_sol++;
 			while( ((next_value = find_next_valid_value(b,elem->row,elem->col)) == 0) && (is_empty(stack) != 1) ){
-				//problem with is_empty, cause in begining ther isnt more than one elem in stack
 				set_value_simple(b,elem->row,elem->col,0);
 				pop(stack);
 				free(elem);

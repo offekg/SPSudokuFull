@@ -1,6 +1,7 @@
 #ifndef BOARD_UTILS_H_
 #define BOARD_UTILS_H_
 
+#include "linked_list.h"
 
 #define MALLOC_ERROR "Error: malloc has failed\nNow exiting game"
 
@@ -11,11 +12,14 @@
  * 		value: an integer with the cell's current valuel
  * 		isFixed: represents if the cell's value is fixed or not. 1 means it's fixed, 0 means it's not.
  * 		isError: represents if the cell's current value creates an error regarding another cell in the board.
+ * 		options: an int array that can save all valid options for a cell when neede.
+ * 				 the 0 index saves how many options there are.
  */
 typedef struct cell_t{
 	int value;
 	int isFixed;
 	int isError;
+	int* options;
 
 } Cell;
 
@@ -32,6 +36,7 @@ typedef struct cell_t{
  * 		num_empty_cells_current:  the amount of empty cells the current_board has at given time.
  * 		num_empty_cells_solution: for use while computing initial backtrack solution.
  * 								  the amount of empty cells left in solution board.
+ * 		turns:  A TurnsList representing all moves done on the board (for use of undo/redo).
  */
 typedef struct board_t{
 	Cell** current_board;
@@ -41,6 +46,7 @@ typedef struct board_t{
 	int block_cols; /* n; number of columns in one block */
 	int num_empty_cells_current;
 	int num_empty_cells_solution;
+	TurnsList* turns;
 } Board;
 
 
