@@ -9,11 +9,10 @@
 #include "solver.h"
 #include "stack.h"
 #include "linked_list.h"
-
+#include "gurobi_utils.h"
 
 
 Board* board = NULL;
-
 
 
 /*
@@ -84,18 +83,24 @@ void validate(Board* b){
  *     If there aren't, then the game mode is switched to INIT,
  *     and the game board is destroyed.
  *     A message is printed acourdingly.
+ * to_print: if it is 1, messeges are printed. otherwise it isn't.
  */
-int check_full_board(Board* b){
+int check_full_board(Board* b, int to_print){
 	if(b->num_empty_cells_current == 0 && current_mode == SOLVE_MODE) {
 		if(check_board_errors(b) == 0){
-			printf("Congratulations! Puzzle solved successfully!!\n\n");
 			destroyBoard(b);
+			if(to_print == 1){
+				printf("Congratulations! Puzzle solved successfully!!\n\n");
+				board = NULL;
+			}
 			current_mode = INIT_MODE;
 			INIT_Mode_print();
 		}
 		else{
-			printf("Sorry, your current solution has errors :(  Keep trying!\n");
-			printf("You can undo your last move or set cells to a diffrent value.\n");
+			if(to_print == 1){
+				printf("Sorry, your current solution has errors :(  Keep trying!\n");
+				printf("You can undo your last move or set cells to a diffrent value.\n");
+			}
 		}
 		return 1;
 	}
@@ -106,15 +111,17 @@ int check_full_board(Board* b){
 /*
  * Function receives a board, a cell's row&col and a value;
  * The function inserts the value in the cell, without any checks.
+ * Also marks or unmarks errors appropriately.
  * num_empty_cells is updated appropriately.
  */
 void set_value_simple(Board* b, int row, int col, int inserted_val){
 	if(inserted_val == 0 && b->current_board[row][col].value != 0)
-		board->num_empty_cells_current++;
+		b->num_empty_cells_current++;
 	if(inserted_val != 0 && b->current_board[row][col].value == 0)
-		board->num_empty_cells_current--;
+		b->num_empty_cells_current--;
 
 	b->current_board[row][col].value = inserted_val;
+	mark_erroneous_cells(b, row, col);
 }
 
 /*
@@ -151,10 +158,10 @@ void set(Board* b, int col, int row, int inserted_val) {
 
 	set_value_simple(b, row, col, inserted_val);
 
-	mark_erroneous_cells(b, row, col);
+
 	printBoard(board, 0);
 	/*printf("num empty cells: %d\n",board->num_empty_cells_current);*/
-	check_full_board(b);
+	check_full_board(b,1);
 	return;
 }
 
@@ -267,7 +274,7 @@ int load_board(char* path, enum game_mode mode){
 			}
 			is_dot = ' ';
 			set_value_simple(board, i, j, value);
-			mark_erroneous_cells(board,i,j);
+			//mark_erroneous_cells(board,i,j);
 
 			/*/printf("cell %d,%d isError: %d\n",j+1,i+1,board->current_board[i][j].isError);*/
 		}
@@ -306,7 +313,7 @@ void solve(char* path){
 	}
 
 	printBoard(board,0);
-	check_full_board(board);
+	check_full_board(board,1);
 }
 
 
@@ -328,13 +335,13 @@ void edit(char* path){
 	printBoard(board,0);
 }
 
-int autofill(Board* board){
+int autofill(Board** board){
 	int i,j;
 	int num_filled = 0;
 	int* options;
 	MovesList* moves;
-	int board_size = board->board_size;
-	Board* updated_board = copy_Board(board);
+	int board_size = (*board)->board_size;
+	Board* updated_board = copy_Board(*board);
 	TurnsList* turns = updated_board->turns;
 
 	if(board == NULL){
@@ -343,31 +350,30 @@ int autofill(Board* board){
 	}
 	moves = initialize_move_list();
 
-	/*printf("num empty cells now is: %d\n",board->num_empty_cells_current);*/
+	/*printf("num empty cells now is: %d\n",updated_board->num_empty_cells_current);*/
 	for(i = 0; i < board_size; i++)
 		for(j = 0; j < board_size; j++){
-			if(board->current_board[i][j].value == 0){
-				options = generate_options(board,i,j,0);
+			if((*board)->current_board[i][j].value == 0){
+				options = generate_options(*board,i,j,0);
 				/*printf("num options for cell %d,%d is %d\n",i,j,options[0]);*/
 				if(options[0] == 1){
-					set_value_simple(updated_board,i,j,options[1]);
 					num_filled++;
 					add_move(moves, i, j, updated_board->current_board[i][j].value, options[1]);
-					mark_erroneous_cells(updated_board, i, j);
+					set_value_simple(updated_board,i,j,options[1]);
+					/*mark_erroneous_cells(updated_board, i, j);*/
 				}
 				free(options);
 			}
 		}
-
+	printf("num empty cells after filling in copy is: %d\n",updated_board->num_empty_cells_current);
 	add_turn(turns, moves);
-
-	destroyBoard(board);
-	board = updated_board;
+	destroyBoard(*board);
+	*board = updated_board;
 
 	printf("Successfully filled %d cells\n", num_filled);
-	printBoard(board,0);
+	printBoard(*board,0);
 	/*printf("num empty cells now is: %d\n",board->num_empty_cells_current);*/
-	check_full_board(board);
+	check_full_board(*board,1);
 	return num_filled;
 }
 
@@ -378,7 +384,12 @@ int autofill(Board* board){
  * Otherwise returns 0.
  */
 int validate_board(Board* board){
-
+	/*Board* b_copy = copy_Board(board);
+	if(find_ILP_solution(b_copy) == 1){
+		destroyBoard(b_copy);
+		return 1;
+	}
+	destroyBoard(b_copy);)*/
 	return 0;
 }
 
@@ -452,9 +463,13 @@ void undo(Board* b, int to_print){
 	if (turns->position_in_list != 1) {
 		turns->current_move = turns->current_move->previous;
 	}
+	else{
+		turns->current_move = NULL;
+	}
 
 	turns->position_in_list -= 1;
-	printBoard(b,0);
+	if(to_print)
+		printBoard(b,0);
 	return;
 }
 
@@ -473,7 +488,7 @@ void redo(Board* b, int to_print){
 	}
 
 	if (turns->position_in_list == 0){
-		move = turns->current_move->current_changes->top;
+		move = turns->top->current_changes->top;
 	} else{
 		move = turns->current_move->next->current_changes->top;
 	}
@@ -489,6 +504,8 @@ void redo(Board* b, int to_print){
 
 	if (turns->position_in_list != 0) {
 		turns->current_move = turns->current_move->next;
+	} else{
+		turns->current_move = turns->top;
 	}
 	turns->position_in_list += 1;
 	printBoard(b,0);
@@ -499,7 +516,7 @@ void redo(Board* b, int to_print){
  * For use when user enters command reset.
  */
 void reset_board(Board* b) {
-	printf("Now reseting the board back to original configuration...\n");
+	/*printf("Now reseting the board back to original configuration...\n");*/
 	while (b->turns->position_in_list > 0) {
 		undo(b, 0);
 	}
@@ -539,7 +556,10 @@ void execute_command(Command* command){
 			set(board, col, row, inserted_val);
 			break;
 		case VALIDATE:
-			/*validate(board);*/
+			if(validate_board(board) == 1)
+				printf("Board validated successfully. A solutions exists.\n");
+			else
+				printf("The board has no solution.\n");
 			break;
 		case GENERATE:
 			break;
@@ -564,7 +584,7 @@ void execute_command(Command* command){
 			printf("The number of solutions for the current board is %d\n",num_solutions(board));
 			break;
 		case AUTOFILL:
-			autofill(board);
+			autofill(&board);
 			break;
 		case RESET:
 			reset_board(board);
@@ -577,6 +597,7 @@ void execute_command(Command* command){
 		    printf("Error: Invalid Command\n");
 		    break;
 	}
+	/*print_turns(board->turns);*/
 	/*printf("num empty cells: %d\n",board->num_empty_cells_current);*/
 	return;
 }

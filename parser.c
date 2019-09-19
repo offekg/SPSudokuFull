@@ -34,7 +34,7 @@ int get_fixed_cells(Board* board) {
 const char* get_command_name(int cmd_id) {
 	static char* names[] = { "invalid_command","solve", "edit", "mark_errors",
 			"print_board", "set", "validate", "generate", "undo", "redo", "save",
-			"hint","num_solutions", "autofill", "restart", "exit" };
+			"hint","num_solutions", "autofill", "reset", "exit" };
 	if (cmd_id < INVALID_COMMAND || cmd_id > EXIT) {
 		return 0;
 	} else {

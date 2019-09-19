@@ -138,7 +138,9 @@ void add_turn(TurnsList* turns, MovesList* moves) {
 	/*
 	 * In case the current turn is after an undo.
 	 */
-	remove_turns_after_current(turns);
+	if(turns->length > turns->position_in_list){
+		remove_turns_after_current(turns);
+	}
 
 	node->current_changes = moves;
 	if (turns->length != 0) {
@@ -162,19 +164,30 @@ void remove_turns_after_current(TurnsList* turns) {
 	TurnNode* node, *tmp;
 	TurnNode* turn = turns->current_move;
 
-	if (!turn)
+	if (turns->current_move == NULL && turns->top == NULL){
 		return;
+	}
 
-	node = turn->next;
-	while (node) {
+	//turns->current_move = turns->current_move->previous;
+
+	if(turn == NULL)
+		node = turns->top;
+	else
+		node = turn->next;
+	while (node != NULL) {
 		tmp = node->next;
 		destroy_move_list(node->current_changes);
 		free(node);
 		turns->length -= 1;
 		node = tmp;
-		turns->position_in_list -=1;
+		//print_moves(node->current_changes);
+		if(turns->position_in_list != 0)
+			turns->position_in_list -= 1;
 	}
-	turn->next = NULL;
+	if(turn != NULL)
+		turn->next = NULL;
+	else
+		turns->top = NULL;
 }
 
 /*
@@ -193,7 +206,6 @@ MovesList* copy_moves_list(MovesList* moves){
 		add_move(copy_moves,temp->row,temp->col,temp->previous_val,temp->new_val);
 		temp = temp->next;
 	}
-
 	return copy_moves;
 }
 
@@ -204,18 +216,65 @@ TurnsList* copy_turns_list(TurnsList* turns){
 	TurnsList* copy_list = initialize_turn_list();
 	TurnNode* turn_node;
 	MovesList* copy_moves;
+	int pos = 1;
 
 	if(turns == NULL)
 		return NULL;
 
 	copy_list = initialize_turn_list();
+	if((turn_node = turns->top) != NULL){
+		while(turn_node){
+			copy_moves = copy_moves_list(turn_node->current_changes);
+			add_turn(copy_list,copy_moves);
+			turn_node = turn_node->next;
+		}
+
+		copy_list->position_in_list = turns->position_in_list;
+		if(copy_list->position_in_list == 0)
+			copy_list->current_move = NULL;
+		else{
+			copy_list->current_move = copy_list->top;
+			while(pos != copy_list->position_in_list){
+				copy_list->current_move = copy_list->current_move->next;
+				pos++;
+			}
+		}
+		copy_list->length = turns->length;
+	}
+	/*print_turns(copy_list);*/
+	return copy_list;
+}
+
+void print_moves(MovesList* moves){
+	Node* temp;
+	if(moves == NULL || moves->top == NULL){
+		printf("The moves node is empty.\n");
+	}
+	temp = moves->top;
+	printf("  Moves list length %d:\n",moves->length);
+	while(temp){
+		printf("      cell <%d,%d> new val: %d, old val: %d\n",temp->col+1,temp->row+1,temp->new_val,temp->previous_val);
+		temp = temp->next;
+	}
+}
+
+void print_turns(TurnsList* turns){
+	TurnNode* turn_node;
+	if(turns == NULL || turns->top == NULL){
+		printf("Turns list is empty and length is %d\n",turns->length);
+		return;
+	}
 	turn_node = turns->top;
+	printf("Printing current Turns List with length %d:\n",turns->length);
 	while(turn_node){
-		copy_moves = copy_moves_list(turn_node->current_changes);
-		add_turn(copy_list,copy_moves);
+		print_moves(turn_node->current_changes);
 		turn_node = turn_node->next;
 	}
-	copy_list->position_in_list = turns->position_in_list;
-	copy_list->current_move = turns->current_move;
-	return copy_list;
+	printf("the current move was:");
+	if(turns->current_move != NULL)
+		print_moves(turns->current_move->current_changes);
+	else
+		printf(" NULL\n");
+	printf("position in the list is: %d\n",turns->position_in_list);
+
 }

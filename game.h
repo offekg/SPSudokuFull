@@ -34,7 +34,19 @@ void set_value_simple(Board* b, int row, int col, int inserted_val);
 void execute_command(Command* command);
 
 
-int autofill(Board* board);
+/*
+ * Function checks if the given board has no more empty cells.
+ * If board is full - return 1; otherwise return 0;
+ * If board is full the function checks if the board has errors:
+ *     If there aren't, then the game mode is switched to INIT,
+ *     and the game board is destroyed.
+ *     A message is printed acourdingly.
+ * to_print: if it is 1, messeges are printed. otherwise it isn't.
+ */
+int check_full_board(Board* b, int to_print);
+
+
+int autofill(Board** board);
 
 /*
  * Exits gracfully from game

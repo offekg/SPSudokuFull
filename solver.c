@@ -127,15 +127,15 @@ int mark_erroneous_cells(Board* board, int row, int col){
 	Cell** game_board = board->current_board;
 	Cell* checked_cell = &(game_board[row][col]);
 	int board_size = board->board_size;
-	int value = checked_cell->value;
+	//int value = checked_cell->value;
 	int i, j;
 	int temp;
 	int block_rows = board->block_rows;
 	int block_cols = board->block_cols;
 	int block_start_row, block_start_col;
 
-	if(value == 0)
-		return 1;
+	/*if(value == 0)
+		return 1;*/
 	if(game_board[row][col].isFixed == 1)
 		return 1;
 	/*

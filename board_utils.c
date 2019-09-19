@@ -6,7 +6,7 @@
 #include "game.h"
 #include "parser.h"
 #include "solver.h"
-
+#include "linked_list.h"
 
 
 /*

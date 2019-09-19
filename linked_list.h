@@ -116,4 +116,12 @@ void add_turn(TurnsList* turns, MovesList* moves);
  */
 void remove_turns_after_current(TurnsList* turns);
 
+/*
+ * Returns a copy of the given TurnsList.
+ */
+TurnsList* copy_turns_list(TurnsList* turns);
+
+void print_moves(MovesList* moves);
+void print_turns(TurnsList* turns);
+
 #endif /* LINKED_LIST_H_ */
