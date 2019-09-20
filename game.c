@@ -44,7 +44,7 @@ void EDIT_Mode_print(){
  * Prints to the prompt the opening greeting and initial instructions to the user.
  */
 void opening_message(){
-	printf("WELCOME TO THE GAME SUDOKU!\n\n\n");
+	printf("\n\nWELCOME TO THE GAME SUDOKU!\n\n\n");
 	printf("Plesae choose if you would like to edit a game board, solve an existing one or exit.\n");
 	printf("Have fun!\n\n");
 	INIT_Mode_print();
@@ -274,9 +274,8 @@ int load_board(char* path, enum game_mode mode){
 			}
 			is_dot = ' ';
 			set_value_simple(board, i, j, value);
-			//mark_erroneous_cells(board,i,j);
 
-			/*/printf("cell %d,%d isError: %d\n",j+1,i+1,board->current_board[i][j].isError);*/
+			/*printf("cell %d,%d isError: %d\n",j+1,i+1,board->current_board[i][j].isError);*/
 		}
 	}
 	if(((m = fscanf(file,"%20s",*checker)) > 0)){
@@ -335,16 +334,22 @@ void edit(char* path){
 	printBoard(board,0);
 }
 
-int autofill(Board** board){
+/*
+ * Function that fills all cells in given board that only have one valid value.
+ * Returns the number of cells that were filled.
+ */
+int autofill(Board** b){
 	int i,j;
 	int num_filled = 0;
 	int* options;
 	MovesList* moves;
-	int board_size = (*board)->board_size;
-	Board* updated_board = copy_Board(*board);
+	int board_size = (*b)->board_size;
+	Board* updated_board = copy_Board(*b);
 	TurnsList* turns = updated_board->turns;
 
-	if(board == NULL){
+	printf("inside autofill\n");
+
+	if(b == NULL){
 		printf("Error: There is no board to autofill.\n");
 		return -1;
 	}
@@ -353,8 +358,8 @@ int autofill(Board** board){
 	/*printf("num empty cells now is: %d\n",updated_board->num_empty_cells_current);*/
 	for(i = 0; i < board_size; i++)
 		for(j = 0; j < board_size; j++){
-			if((*board)->current_board[i][j].value == 0){
-				options = generate_options(*board,i,j,0);
+			if((*b)->current_board[i][j].value == 0){
+				options = generate_options(*b,i,j,0);
 				/*printf("num options for cell %d,%d is %d\n",i,j,options[0]);*/
 				if(options[0] == 1){
 					num_filled++;
@@ -365,15 +370,15 @@ int autofill(Board** board){
 				free(options);
 			}
 		}
-	printf("num empty cells after filling in copy is: %d\n",updated_board->num_empty_cells_current);
+	/*printf("num empty cells after filling in copy is: %d\n",updated_board->num_empty_cells_current);*/
+	printf("   finished filling\n");
 	add_turn(turns, moves);
-	destroyBoard(*board);
-	*board = updated_board;
-
-	printf("Successfully filled %d cells\n", num_filled);
-	printBoard(*board,0);
+	printf("   added turn\n");
+	destroyBoard(*b);
+	printf("   destroyed original board\n");
+	*b = updated_board;
+	printf("   pointed to new board\n");
 	/*printf("num empty cells now is: %d\n",board->num_empty_cells_current);*/
-	check_full_board(*board,1);
 	return num_filled;
 }
 
@@ -385,13 +390,15 @@ int autofill(Board** board){
  */
 int validate_board(Board* board){
 	Board* b_copy = copy_Board(board);
-
+	printf("Copied board\n");
 	if(check_board_errors(b_copy) == 1){
 		printf("Error: The board has erroneous cells.\n");
 		return 0;
 	}
-
-	if(find_ILP_solution(b_copy,0) == 1){
+	printf("Checked for errors\n");
+	if(find_ILP_solution(b_copy,1) == 1){
+		printf("The found solution is:\n");
+		printBoard(b_copy,0);
 		destroyBoard(b_copy);
 		return 1;
 	}
@@ -584,6 +591,7 @@ void execute_command(Command* command){
 	int row = command->params[1] - 1;
 	int inserted_val = command->params[2];
 	int binary_param = command->params[0];
+	int num_filled;
 
 	switch(command->id) {
 		case SOLVE:
@@ -631,7 +639,10 @@ void execute_command(Command* command){
 			printf("The number of solutions for the current board is %d\n",num_solutions(board));
 			break;
 		case AUTOFILL:
-			autofill(&board);
+			num_filled = autofill(&board);
+			printf("Successfully filled %d cells\n", num_filled);
+			printBoard(board,0);
+			check_full_board(board,1);
 			break;
 		case RESET:
 			reset_board(board);

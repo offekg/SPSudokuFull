@@ -22,7 +22,7 @@ parser.o: parser.c parser.h game.h main_aux.h
 solver.o: solver.c solver.h game.h board_utils.h stack.h
 	$(CC) $(COMP_FLAG) -c $*.c
 gurobi_utils.o: gurobi_utils.c gurobi_utils.h game.h solver.h
-	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.cS
+	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
 linked_list.o: linked_list.c linked_list.h board_utils.h stack.h
 	$(CC) $(COMP_FLAG) -c $*.c
 stack.o: stack.c stack.h board_utils.h

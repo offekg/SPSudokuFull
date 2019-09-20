@@ -168,8 +168,6 @@ void remove_turns_after_current(TurnsList* turns) {
 		return;
 	}
 
-	//turns->current_move = turns->current_move->previous;
-
 	if(turn == NULL)
 		node = turns->top;
 	else
@@ -180,7 +178,7 @@ void remove_turns_after_current(TurnsList* turns) {
 		free(node);
 		turns->length -= 1;
 		node = tmp;
-		//print_moves(node->current_changes);
+		/*print_moves(node->current_changes);*/
 		if(turns->position_in_list != 0)
 			turns->position_in_list -= 1;
 	}

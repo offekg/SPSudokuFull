@@ -85,9 +85,9 @@ Command* create_new_command_object(int cmd_id, int params[3], int param_counter,
 }
 
 void destroy_command_object(Command* cmd){
-	if(!cmd)
+	if(cmd == NULL)
 		return;
-	if(cmd->path_param)
+	if(cmd->path_param != NULL)
 		free(cmd->path_param);
 	free(cmd);
 }

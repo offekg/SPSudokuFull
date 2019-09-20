@@ -54,15 +54,23 @@ void destroy_var_indexs(int*** array, int size){
  */
 void free_resorces(GRBenv* env, GRBmodel* model, char* vtype, int*** var_indexs,
 					double* obj, int* ind, double* val, double* sol, int board_size){
-
+	printf("free succesfuly:\n");
 	destroy_var_indexs(var_indexs, board_size);
+	printf("var_indexes, ");
 	free(vtype);
+	printf("vtype, ");
 	free(obj);
+	printf("obj, ");
 	free(ind);
+	printf("ind, ");
 	free(val);
+	printf("val, ");
 	free(sol);
+	printf("sol, ");
 	GRBfreemodel(model);
+	printf("model, ");
 	GRBfreeenv(env);
+	printf("env.\n");
 }
 
 
@@ -150,11 +158,17 @@ int add_constraints(Board* board, GRBenv** env, GRBmodel** model, int var_amount
 	/*Constraint 1: each cell has exactly 1 value*/
 	for(i = 0; i < board_size; i++)
 		for(j = 0; j < board_size; j++){
-			curr_cell = &(board->current_board[i][j]);
+			printf("  entered 2nd for\n");
+			*curr_cell = board->current_board[i][j];
+			printf("  used cell <%d,%d>. it has value %d\n",j+1,i+1,curr_cell->value);
 			if(curr_cell->value == 0){
+				printf("entered the if 0\n");
 				for(k = 0; k < curr_cell->options[0]; k++){
+					printf("    entered third for\n");
 					(*ind)[k] = var_indexs[i][j][curr_cell->options[k-1]] - 1;
+					printf("    ok with var_indexes[]\n");
 					(*val)[k] = 1;
+					printf("    val\n");
 				}
 				error = GRBaddconstr(*model, k, *ind, *val, GRB_EQUAL, 1.0, "c1");
 				if (error) {
@@ -162,7 +176,9 @@ int add_constraints(Board* board, GRBenv** env, GRBmodel** model, int var_amount
 					return 0;
 				}
 			}
+			printf("  after if check 0\n");
 		}
+	printf("finished consraint 1\n");
 
 	/*Constraint 2: each row has one of each possible value*/
 	for(i = 0; i < board_size; i++)
@@ -183,6 +199,7 @@ int add_constraints(Board* board, GRBenv** env, GRBmodel** model, int var_amount
 
 			}
 		}
+	printf("finished consraint 2\n");
 
 	/*Constraint 3: each column has one of each possible value*/
 	for(j = 0; j < board_size; j++)
@@ -204,9 +221,10 @@ int add_constraints(Board* board, GRBenv** env, GRBmodel** model, int var_amount
 
 			}
 		}
+	printf("finished consraint 3\n");
 
 	/*Constraint 4: each block has one of each possible value*/
-	for(a = 0; a < n; a++){ /*block row*/
+	for(a = 0; a < n; a++) /*block row*/
 		for(b = 0; b < m; b++){ /*block column*/
 			for(k = 0; k < board_size; k++){ /*checked value*/
 				current = 0;
@@ -227,7 +245,7 @@ int add_constraints(Board* board, GRBenv** env, GRBmodel** model, int var_amount
 					}
 			}
 		}
-	}
+	printf("finished consraint 4\n");
 
 
 	return 1;
@@ -272,22 +290,28 @@ int find_ILP_solution(Board* board, int save_solution){
 	int index = 1;
 	int*** var_indexs;
 	int i,j,k;
-	Cell** game_board = board->current_board;
+	Cell** game_board;
 	int board_size = board->board_size;
 
 	autofill(&board);
+	game_board = board->current_board;
+	printf("autofilled succeffuly:\n");
+	printBoard(board,0);
 
 	/* Create environment */
 	error = create_env(&env, &model);
 	if(error == 0)
 		return 0;
+	printf("created env\n");
 
 	/* Add variables */
 	var_indexs = allocate_var_indexs(board_size);
+	printf("allocated var_indexes\n");
 	for(i = 0; i < board_size; i++){
 		for(j = 0; j < board_size; j++){
 			if(game_board[i][j].value == 0){
 				game_board[i][j].options = generate_options(board,i,j,0);
+				printf("num options for <%d,%d>: %d\n",j+1,i+1,game_board[i][j].options[0]);
 				if(game_board[i][j].options[0] == 0){
 					/*Cell with no valid value found, so there is no solution*/
 					destroy_var_indexs(var_indexs, board_size);
@@ -302,6 +326,7 @@ int find_ILP_solution(Board* board, int save_solution){
 		}
 	}
 
+	printf("set values of var_indexes. var_amount = %d\n",var_amount);
 
 	obj = (double*) malloc(var_amount * sizeof(double));
 	vtype = (char*) malloc(var_amount * sizeof(char));
@@ -313,18 +338,21 @@ int find_ILP_solution(Board* board, int save_solution){
 		printf(MALLOC_ERROR);
 		exit(0);
 	}
+	printf("allocated memory to all arrays\n");
 
 	error = add_variables(&env, &model, var_amount, &obj, &vtype);
 	if(error == 0){
 		free_resorces(env, model, vtype, var_indexs, obj, ind, val, sol, board_size);
 		return 0;
 	}
+	printf("did add_variables\n");
 
 	error = add_constraints(board, &env, &model, var_amount, &ind, &val, var_indexs);
 	if(error == 0){
 		free_resorces(env, model, vtype, var_indexs, obj, ind, val, sol, board_size);
 		return 0;
 	}
+	printf("did add_constraints\n");
 
 	/* Optimize model */
 	error = GRBoptimize(model);
@@ -333,6 +361,7 @@ int find_ILP_solution(Board* board, int save_solution){
 		free_resorces(env, model, vtype, var_indexs, obj, ind, val, sol, board_size);
 		return 0;
 	}
+	printf("optimized the model\n");
 
 	/* Write model to 'mip1.lp' */
 	error = GRBwrite(model, "integerLinearPrograming.lp");
@@ -349,6 +378,7 @@ int find_ILP_solution(Board* board, int save_solution){
 		free_resorces(env, model, vtype, var_indexs, obj, ind, val, sol, board_size);
 		return 0;
 	}
+	printf("got status attr: %d\n",optimstatus);
 
 	if(optimstatus == GRB_OPTIMAL){
 		if(save_solution == 1){
@@ -360,6 +390,7 @@ int find_ILP_solution(Board* board, int save_solution){
 				return 0;
 			  }
 			save_sol_to_board(board,sol,var_indexs);
+			printf("saved the solution to board\n");
 		}
 		free_resorces(env, model, vtype, var_indexs, obj, ind, val, sol, board_size);
 		return 1;

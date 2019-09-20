@@ -127,7 +127,6 @@ int mark_erroneous_cells(Board* board, int row, int col){
 	Cell** game_board = board->current_board;
 	Cell* checked_cell = &(game_board[row][col]);
 	int board_size = board->board_size;
-	//int value = checked_cell->value;
 	int i, j;
 	int temp;
 	int block_rows = board->block_rows;

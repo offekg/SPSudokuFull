@@ -21,9 +21,6 @@ void eventual_main(){
 	char userInput[MAX_COMMAND_SIZE+2] = { 0 };
 
 	opening_message();
-	/*board = create_blank_board(2,4);
-	generate_user_board(board);
-	printBoard(board,0);*/
 
 	while(1){
 		printf("\nPlease enter a command:\n");
@@ -66,20 +63,40 @@ void check_is_string_int(){
 
 
 
-int main(int argc, char *argv[]){
-	if(argc > 1)
-		srand(atoi(argv[1]));
+int main(){
+	Command* command;
+	char userInput[MAX_COMMAND_SIZE+2] = { 0 };
+
+	srand(time(0));
 	SP_BUFF_SET();
-	/*char *path = "C:\\Users\\offek\\eclipse-c-workspace\\SPSudokuFull\\Board_files\\fixed.txt";
-	check_fscanf(path);
-	int x;
-	char y[5], a[5], b[5], c[5];
-	x = scanf("%10s %s %s",y,a,b);
-	printf("scanf result: %d\n",x);
-	x = scanf("%s\n",c);
-	printf("scanf 2 result: %d\n",x);
-	printf("y input: %s\na input: %s\nb input: %s\nc input: %s\n",y,a,b,c);*/
-	eventual_main();
+	opening_message();
+
+	while(1){
+		printf("\nPlease enter a command:\n");
+		if (fgets(userInput, MAX_COMMAND_SIZE+3, stdin) == NULL) {
+			if (ferror(stdin)) {
+				printf("Error: fgets has failed\n");
+			}
+			printf("Exiting...\n");
+			exit(0);
+		}
+		if (userInput[MAX_COMMAND_SIZE+1] != 0){
+			printf("Error: Invalid Command - Entered more then 256 characters!\n");
+			clear_input_line();
+			userInput[MAX_COMMAND_SIZE+1] = 0;
+			continue;
+		}
+
+		command = parse_command(userInput);
+		if (!command) {
+			/*
+			 * Could not parse a legal command, skipping.
+			 */
+			continue;
+		}
+		execute_command(command);
+		destroy_command_object(command);
+	}
 	return 0;
 }
 
