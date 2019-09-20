@@ -1,3 +1,8 @@
+/*
+ * The "game" module holds all functions that directly respond to the useres input
+ *  and commands (after it has been parsed).
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -297,6 +302,7 @@ void edit(char* path){
 /*
  * Function that fills all cells in given board that only have one valid value.
  * Returns the number of cells that were filled.
+ * For use of the AUTOFILL command.
  */
 int autofill(Board** b){
 	int i,j;
@@ -342,6 +348,7 @@ int autofill(Board** b){
  * or not.
  * Returns 1 if a solutions was found, -1 if a no solution exists.
  * Otherwise returns 0 on errors.
+ * For use of the VALIDATE command.
  */
 int validate_board(Board* board){
 	Board* b_copy = copy_Board(board);
@@ -590,6 +597,14 @@ void execute_command(Command* command){
 			}
 			break;
 		case GENERATE:
+			num_filled = generate(board,col + 1, row + 1);
+			if(num_filled == 0){
+				printf("Error: The generate function failed to create a board.\n");
+			}
+			else{
+				printf("The generation succeeded. The new board:\n");
+				printBoard(board);
+			}
 			break;
 		case UNDO:
 			undo(board, 1);

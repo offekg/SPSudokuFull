@@ -1,3 +1,8 @@
+/*
+ * The "solver" module contains all functions that have to calculate actual sudoku game logic,
+ * other than functions that use ilp.
+ */
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +12,7 @@
 #include "game.h"
 #include "board_utils.h"
 #include "stack.h"
+#include "gurobi_utils.h"
 
 
 /*
@@ -317,3 +323,137 @@ int num_solutions(Board* b){
 	return num_sol;
 }
 
+/*
+ * Function tries (up to 1000 times) to generate a random solvable board into the given board.
+ * x: amount of random cells to randomly fill before running ilp.
+ * y: amount of cells to leave filled in the final board.
+ * Returns 1 if successful, 0 otherwise.
+ * For use of the GENERATE command.
+ */
+int generate(Board* board,int x, int y){
+	Board* copy_board;
+	int i, j, k;
+	int rand_row, rand_col;
+	int count_iter;
+	int cells_filled = 0;
+	int cells_cleared;
+	int board_size = board->board_size;
+	int* options;
+	int index_chosen;
+	int *changed_rows, *changed_cols;
+	MovesList* moves;
+
+	if(x < 0 || y < 1){
+		printf("Error: Please enter a positive number of cells to fill,"
+				" and at least 1 cell to keep in generated board.\n");
+		return 0;
+	}
+
+	if(board->num_empty_cells_current < x){
+		printf("Error: The board does not have enough empty cells.\n");
+		printf("       There are only %d empty cells available to fill.\n",board->num_empty_cells_current);
+		return 0;
+	}
+
+	if(check_board_errors(board) == 1){
+		printf("Error: The board has erronous cells, so can not generate a new board from it.\n");
+		return 0;
+	}
+
+	if (validate_board(board) != 1) {
+		printf("Error: The initial board can not be validated, so can not generate a new board from it.\n");
+		return 0;
+	}
+
+
+	changed_rows = (int*) malloc(x * sizeof(int));
+	changed_cols = (int*) malloc(x * sizeof(int));
+	if(!changed_rows || !changed_cols){
+		printf(MALLOC_ERROR);
+		exit(0);
+	}
+
+	copy_board = copy_Board(board);
+
+	for(count_iter = 0; count_iter < 1000; count_iter++){
+		cells_filled = 0;
+		while(cells_filled < x){
+			rand_row = rand() % board_size;
+			rand_col = rand() % board_size;
+
+			if (board->current_board[rand_row][rand_col].value == 0) {
+				options = generate_options(board,rand_row,rand_col);
+
+				if(options[0] == 0){
+					/*stuck with a cell with no legal value. starting over, (raising count_iter).*/
+					for(i = 0; i < cells_filled; i++){
+						set_value_simple(board,changed_rows[i],changed_cols[i],0);
+						changed_rows[i] = 0;
+						changed_cols[i] = 0;
+					}
+					cells_filled = 0;
+					free(options);
+					break;
+				}
+
+				if( (options[0]) == 1)
+					index_chosen = 1;
+				else
+					index_chosen = (rand() % options[0]) + 1;
+
+				set_value_simple(board, rand_row, rand_col, options[index_chosen]);
+				changed_rows[cells_filled] = rand_row;
+				changed_cols[cells_filled] = rand_col;
+				cells_filled++;
+				free(options);
+				}
+			}
+
+			if (cells_filled == 0 || x != 0)
+				continue;
+
+			j = find_ILP_solution(board, 1);
+			if (j != 1) { /*The board has no solution. restart.*/
+				for (k = 0; k < cells_filled; k++) {
+					set_value_simple(board, changed_rows[k], changed_cols[k], 0);
+					changed_rows[k] = 0;
+					changed_cols[k] = 0;
+				}
+				cells_filled = 0;
+			}
+			else
+				break; /*A solution was found for the board and saved on it!*/
+		}
+
+	if(count_iter == 1000 && cells_filled == 0 && x != 0){
+		destroyBoard(copy_board);
+		free(changed_cols);
+		free(changed_rows);
+		printf("Error: Failed to achieve a solvable board for all 1000 tries.\n");
+		return 0;
+	}
+
+	while(cells_cleared < board_size * board_size - y){
+		/*Clearing all but y cells from the board*/
+		rand_row = rand() % board_size;
+		rand_col = rand() % board_size;
+		if(board->current_board[rand_row][rand_col].value != 0){
+			set_value_simple(board, rand_row, rand_col, 0);
+			cells_cleared++;
+		}
+	}
+
+	/*Compare new board with original, for the moves_list (undo/redo)*/
+	moves = initialize_move_list();
+	for(i = 0; i < board_size; i++)
+		for(j = 0; j < board_size; j++)
+			if(board->current_board[i][j].value != copy_board->current_board[i][j].value)
+				add_move(moves, i, j, copy_board->current_board[i][j].value, board->current_board[i][j].value);
+
+	add_turn(board->turns, moves);
+
+	destroyBoard(copy_board);
+	free(changed_cols);
+	free(changed_rows);
+	return 1;
+}

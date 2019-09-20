@@ -1,3 +1,9 @@
+/*
+ * The "board_utils" module includs all structs that represent the sudoku game board,
+ * and all functions regarding the board (creating, destroying, printing...)
+ * that do not have to do with actual game logic.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

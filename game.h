@@ -1,3 +1,8 @@
+/*
+ * The "game" module holds all functions that directly respond to the useres input
+ *  and commands (after it has been parsed).
+ */
+
 #ifndef GAME_H_
 #define GAME_H_
 
@@ -45,8 +50,21 @@ void execute_command(Command* command);
  */
 int check_full_board(Board* b, int to_print);
 
-
+/*
+ * Function that fills all cells in given board that only have one valid value.
+ * Returns the number of cells that were filled.
+ * For use of the AUTOFILL command.
+ */
 int autofill(Board** board);
+
+/*
+ * Function uses ILP to check if the given board has a solution
+ * or not.
+ * Returns 1 if a solutions was found, -1 if a no solution exists.
+ * Otherwise returns 0 on errors.
+ * For use of the VALIDATE command.
+ */
+int validate_board(Board* board);
 
 /*
  * Exits gracfully from game

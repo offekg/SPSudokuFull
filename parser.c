@@ -1,3 +1,9 @@
+/*
+ * The "parser" module is in charge of parsing the diffrent inputs from the user,
+ * to command strucures that the game knows how to handle.
+ * Initial checks on simple validity of the user input are done here.
+ */
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

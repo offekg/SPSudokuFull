@@ -19,7 +19,7 @@ game.o: game.c game.h parser.h solver.h stack.h linked_list.h gurobi_utils.h
 	$(CC) $(COMP_FLAG) -c $*.c
 parser.o: parser.c parser.h game.h main_aux.h
 	$(CC) $(COMP_FLAG) -c $*.c
-solver.o: solver.c solver.h game.h board_utils.h stack.h
+solver.o: solver.c solver.h game.h board_utils.h stack.h gurobi_utils.h
 	$(CC) $(COMP_FLAG) -c $*.c
 gurobi_utils.o: gurobi_utils.c gurobi_utils.h game.h solver.h
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c

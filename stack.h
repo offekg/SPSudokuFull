@@ -1,3 +1,7 @@
+/*
+ * The "stack" module contains the stack struct and relevant use functions,
+ * that are used for simulating recursion for Exhaustive Backtracking (num_solutions)
+ */
 
 #ifndef STACK_H_
 #define STACK_H_

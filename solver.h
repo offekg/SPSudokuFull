@@ -1,3 +1,8 @@
+/*
+ * The "solver" module contains all functions that have to calculate actual sudoku game logic,
+ * other than functions that use ilp.
+ */
+
 #ifndef SOLVER_H_
 #define SOLVER_H_
 
@@ -42,7 +47,14 @@ int check_board_errors(Board* b);
  */
 int num_solutions(Board* b);
 
-
+/*
+ * Function tries (up to 1000 times) to generate a random solvable board into the given board.
+ * x: amount of random cells to randomly fill before running ilp.
+ * y: amount of cells to leave filled in the final board.
+ * Returns 1 if successful, 0 otherwise.
+ * For use of the GENERATE command.
+ */
+int generate(Board* board,int x, int y);
 
 
 #endif /* SOLVER_H_ */

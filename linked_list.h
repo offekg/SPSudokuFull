@@ -1,3 +1,8 @@
+/*
+ * The "linked_list" module contains the to-way linked list structure and relevant use functions,
+ * that are used for saving the users moves on the board.
+ * The struct itself is saved for each Board structure.
+ */
 
 #ifndef LINKED_LIST_H_
 #define LINKED_LIST_H_

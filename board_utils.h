@@ -1,3 +1,9 @@
+/*
+ * The "board_utils" module includs all structs that represent the sudoku game board,
+ * and all functions regarding the board (creating, destroying, printing...)
+ * that do not have to do with actual game logic.
+ */
+
 #ifndef BOARD_UTILS_H_
 #define BOARD_UTILS_H_
 

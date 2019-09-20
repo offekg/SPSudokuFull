@@ -1,11 +1,7 @@
 /*
- * gurobi_utils.c
- *
- *  Created on: Sep 15, 2019
- *      Author: offek
+ * The "gurobi_utils" module is in charge of all functions that directly use Gurobi
+ * for finding ilp solutions.
  */
-
-/* Copyright 2013, Gurobi Optimization, Inc. */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -139,7 +135,6 @@ int add_variables(GRBenv** env, GRBmodel** model, int var_amount, double** obj, 
 int add_constraints(Board* board, GRBenv** env, GRBmodel** model, int var_amount,
 		 int** ind, double** val, int*** var_indexs){
 	int i, j, k, a, b;
-	int index = 1;
 	int n = board->block_cols;
 	int m = board->block_rows;
 	int current;
@@ -374,7 +369,7 @@ int find_ILP_solution(Board* board, int save_solution){
 				return 0;
 			  }
 			save_sol_to_board(board,sol,var_indexs);
-			printf("saved the solution to board\n");
+			printf("saved the solution to board\n"); /*need to get earased go*/
 		}
 		free_resorces(env, model, vtype, var_indexs, obj, ind, val, sol, board_size);
 		return 1;

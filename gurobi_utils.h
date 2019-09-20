@@ -1,8 +1,6 @@
 /*
- * gurobi_utils.h
- *
- *  Created on: Sep 15, 2019
- *      Author: offek
+ * The "gurobi_utils" module is in charge of all functions that directly use Gurobi
+ * for finding ilp solutions.
  */
 
 #ifndef GUROBI_UTILS_H_

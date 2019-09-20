@@ -1,3 +1,8 @@
+/*
+ * The "stack" module contains the stack struct and relevant use functions,
+ * that are used for simulating recursion for Exhaustive Backtracking (num_solutions)
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
