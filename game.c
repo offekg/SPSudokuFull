@@ -384,13 +384,64 @@ int autofill(Board** board){
  * Otherwise returns 0.
  */
 int validate_board(Board* board){
-	/*Board* b_copy = copy_Board(board);
-	if(find_ILP_solution(b_copy) == 1){
+	Board* b_copy = copy_Board(board);
+
+	if(check_board_errors(b_copy) == 1){
+		printf("Error: The board has erroneous cells.\n");
+		return 0;
+	}
+
+	if(find_ILP_solution(b_copy,0) == 1){
 		destroyBoard(b_copy);
 		return 1;
 	}
-	destroyBoard(b_copy);)*/
+	destroyBoard(b_copy);
 	return 0;
+}
+
+/*
+ * Function for use of hint command.
+ * Receives the board, and cell col and row.
+ * Checks everything is legal, and looks for a ilp solution to the board.
+ * If there is a solution, function prints the value of solution in the cell.
+ */
+void cell_hint(Board* b, int col, int row){
+	Board* b_copy;
+	int value;
+	int board_size = b->board_size;
+
+	if(col < 0 || col > board_size){
+		printf("Error: Invalid Command - Column (first) paramater is out of the range 1-%d.\n",board_size);
+		return;
+	}
+	if(row < 0 || row > board_size){
+		printf	("Error: Invalid Command - Row (second) paramater is out of the range 1-%d.\n",board_size);
+		return;
+	}
+	if(check_board_errors(b) == 1){
+		printf("Error: The board has erroneous cells.\n");
+		return;
+	}
+	if(b->current_board[row][col].isFixed == 1){
+		printf("Error: The cell you asked a hint fot is fixed.\n");
+		return;
+	}
+	if(b->current_board[row][col].value > 0){
+		printf("Error: The cell you asked a hint for already has a value.\n");
+		return;
+	}
+
+	b_copy = copy_Board(b);
+	if(find_ILP_solution(b_copy,1) == 0){
+		destroyBoard(b_copy);
+		printf("Error: The board has no solution.\n");
+		return;
+	}
+
+	value = b_copy->current_board[row][col].value;
+	printf("Hint: You can set cell <%d,%d> to the value %d.\n",col+1,row+1,value);
+	destroyBoard(b_copy);
+	return;
 }
 
 /*
@@ -573,11 +624,7 @@ void execute_command(Command* command){
 			save(command->path_param);
 			break;
 		case HINT:
-		    if(col < 0 || row < 0 || board->num_empty_cells_current == 0 || command->param_counter < 2){
-		    	printf("Error: Invalid command\n");
-		    	break;
-		    }
-		    /*printf("Hint: set cell to %d\n", board->solution[row][col].value);*/
+		    cell_hint(board, col, row);
 		    break;
 		case NUM_SOLUTIONS:
 			printf("Now starting to calculate number of solutions.\nThis could take a while.\n\n");
