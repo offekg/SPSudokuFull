@@ -369,7 +369,6 @@ int find_ILP_solution(Board* board, int save_solution){
 				return 0;
 			  }
 			save_sol_to_board(board,sol,var_indexs);
-			printf("saved the solution to board\n"); /*need to get earased go*/
 		}
 		free_resorces(env, model, vtype, var_indexs, obj, ind, val, sol, board_size);
 		return 1;

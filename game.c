@@ -360,13 +360,8 @@ int validate_board(Board* board){
 
 	autofill(&b_copy); /*autofilling to make ilp easier*/
 
-	ret = find_ILP_solution(b_copy,1);
-	if(ret == 1){
-		printf("ilp success. The found solution is:\n"); /*need to earase this and turn function to type 0*/
-		printBoard(b_copy);
-		destroyBoard(b_copy);
-		return 1;
-	}
+	ret = find_ILP_solution(b_copy,0);
+
 	destroyBoard(b_copy);
 	return ret;
 }
@@ -593,7 +588,7 @@ void execute_command(Command* command){
 				if(num_filled == -1)
 					printf("The board has no solution.\n");
 				else
-					printf("Error: Validation failed because of an Error. You can try again.\n");
+					printf("     Validation failed because of an Error.\n");
 			}
 			break;
 		case GENERATE:

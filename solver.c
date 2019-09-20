@@ -336,7 +336,7 @@ int generate(Board* board,int x, int y){
 	int rand_row, rand_col;
 	int count_iter;
 	int cells_filled = 0;
-	int cells_cleared;
+	int cells_cleared = 0;
 	int board_size = board->board_size;
 	int* options;
 	int index_chosen;
@@ -409,11 +409,13 @@ int generate(Board* board,int x, int y){
 				}
 			}
 
-			if (cells_filled == 0 || x != 0)
+			if (cells_filled == 0 && x != 0)
 				continue;
+
 
 			j = find_ILP_solution(board, 1);
 			if (j != 1) { /*The board has no solution. restart.*/
+				printf("ilp failed and returnd %d\n",j);
 				for (k = 0; k < cells_filled; k++) {
 					set_value_simple(board, changed_rows[k], changed_cols[k], 0);
 					changed_rows[k] = 0;
@@ -425,6 +427,7 @@ int generate(Board* board,int x, int y){
 				break; /*A solution was found for the board and saved on it!*/
 		}
 
+	/*printf("finished loops- count_iter: %d, cells_filled: %d\n",count_iter,cells_filled);*/
 	if(count_iter == 1000 && cells_filled == 0 && x != 0){
 		destroyBoard(copy_board);
 		free(changed_cols);
@@ -432,6 +435,7 @@ int generate(Board* board,int x, int y){
 		printf("Error: Failed to achieve a solvable board for all 1000 tries.\n");
 		return 0;
 	}
+
 
 	while(cells_cleared < board_size * board_size - y){
 		/*Clearing all but y cells from the board*/
