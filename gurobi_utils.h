@@ -10,7 +10,8 @@
 
 /*
  * Function uses ilp to try and find a solution to the given board.
- * If a solutions is found, returns 1. if not, returns 0.
+ * If a solutions is found, returns 1. if everything ran through and no solution found, returns -1.
+ * If an error accured, returns 0;
  * When given save_solution as 1, the found solution (if exists) is saved on the given board.
  */
 int find_ILP_solution(Board* board, int save_solution);

@@ -19,6 +19,7 @@ void createCell(Cell* cell,int val){
 	cell->isFixed = 0;
 	cell->isError = 0;
 	cell->options = NULL;
+	cell->is_options_on = 0;
 }
 
 /*
@@ -71,8 +72,11 @@ void destroy_game_board(Cell** board, int size){
 	int i, j;
 	for(i = 0; i < size; i++){
 		for(j = 0; j < size; j++){
-			if(board[i][j].options != NULL)
+			/*printf("   now checking cell <%d,%d>\n",j+1,i+1);*/
+			if((&(board[i][j]) != NULL) && (board[i][j].is_options_on == 1)){
+				/*printf("    now freeing <%d,%d> options array\n",j+1,i+1);*/
 				free(board[i][j].options);
+			}
 		}
 		free(board[i]);
 	}
@@ -83,8 +87,8 @@ void destroy_game_board(Cell** board, int size){
  * Destroys properly a given Board, freeing all allocated resources.
  */
 void destroyBoard(Board* b){
-	if(b != NULL){
-		destroy_game_board(b->current_board, b->board_size);
+	if(b != NULL && b->current_board != NULL){
+		destroy_game_board(b->current_board, b->board_size);;
 		destroy_turn_list(b->turns);
 		free(b);
 	}
@@ -141,18 +145,23 @@ void printIsError(Board* b){
 
 
 /*
- * Prints the given board.
- * if type == 1: prints the board's known solution.
- * otherwise, prints board's current state board.
+ * Prints the given board by the known format.
+ *
  */
 void printBoard(Board* b){
 	int i, j;
 	Cell** board;
 	char* sep_row;
-	int total_row_length = (4* b->board_size) + b->block_rows + 1;
+	int total_row_length = (4* b->board_size) + (b->block_rows + 1);
 	board = b->current_board;
 
+
 	sep_row = (char*) malloc((total_row_length + 2)*sizeof(char));
+	if(sep_row == NULL){
+		printf(MALLOC_ERROR);
+		exit(0);
+	}
+
 	for( i = 0; i < total_row_length; i++ ){
 		sep_row[i] ='-';
 	}
@@ -198,6 +207,8 @@ Cell** copy_game_board(Cell** game_board, int board_size){
 			copy[i][j].value = game_board[i][j].value;
 			copy[i][j].isFixed = game_board[i][j].isFixed;
 			copy[i][j].isError = game_board[i][j].isError;
+			copy[i][j].is_options_on = 0;
+			copy[i][j].options = NULL;
 		}
 	}
 	return copy;
@@ -206,7 +217,7 @@ Cell** copy_game_board(Cell** game_board, int board_size){
 /*
  * Creates and returns a duplicate of a given Board.
  */
-Board* copy_Board(Board* b){
+Board* copy_Board_old(Board* b){
 	Board* copy_board;
 	if(b == NULL)
 		return NULL;
@@ -222,6 +233,34 @@ Board* copy_Board(Board* b){
 	copy_board->num_empty_cells_current = b->num_empty_cells_current;
 
 	copy_board->current_board = copy_game_board(b->current_board,b->board_size);
+	copy_board->turns = copy_turns_list(b->turns);
+
+	return copy_board;
+}
+
+/*
+ * Creates and returns a duplicate of a given Board.
+ */
+Board* copy_Board(Board* b){
+	Board* copy_board;
+	int row, col;
+	int board_size = b->board_size;
+
+	if(b == NULL)
+		return NULL;
+
+	copy_board = create_blank_board(b->block_cols,b->block_rows);
+
+
+	for(row = 0; row < board_size; row++){
+		for(col = 0; col < board_size; col++){
+			set_value_simple(copy_board, row, col, b->current_board[row][col].value);
+			/*copy_board->current_board[row][col].isError = b->current_board[row][col].isError;*/
+			copy_board->current_board[row][col].isFixed = b->current_board[row][col].isFixed;
+			}
+		}
+	/*copy_board->num_empty_cells_current = b->num_empty_cells_current;*/
+
 	copy_board->turns = copy_turns_list(b->turns);
 
 	return copy_board;

@@ -14,12 +14,14 @@
  * 		isError: represents if the cell's current value creates an error regarding another cell in the board.
  * 		options: an int array that can save all valid options for a cell when neede.
  * 				 the 0 index saves how many options there are.
+ * 		is_options_on: binary indicator if the *options array is in use and need freeing if destroyed.
  */
 typedef struct cell_t{
 	int value;
 	int isFixed;
 	int isError;
 	int* options;
+	int is_options_on;
 
 } Cell;
 

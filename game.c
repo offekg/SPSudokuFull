@@ -307,7 +307,6 @@ int autofill(Board** b){
 	Board* updated_board = copy_Board(*b);
 	TurnsList* turns = updated_board->turns;
 
-	printf("inside autofill\n");
 
 	if(b == NULL){
 		printf("Error: There is no board to autofill.\n");
@@ -331,13 +330,9 @@ int autofill(Board** b){
 			}
 		}
 	/*printf("num empty cells after filling in copy is: %d\n",updated_board->num_empty_cells_current);*/
-	printf("   finished filling\n");
 	add_turn(turns, moves);
-	printf("   added turn\n");
 	destroyBoard(*b);
-	printf("   destroyed original board\n");
 	*b = updated_board;
-	printf("   pointed to new board\n");
 	/*printf("num empty cells now is: %d\n",board->num_empty_cells_current);*/
 	return num_filled;
 }
@@ -345,25 +340,28 @@ int autofill(Board** b){
 /*
  * Function uses ILP to check if the given board has a solution
  * or not.
- * Returns 1 if a solutions was found.
- * Otherwise returns 0.
+ * Returns 1 if a solutions was found, -1 if a no solution exists.
+ * Otherwise returns 0 on errors.
  */
 int validate_board(Board* board){
 	Board* b_copy = copy_Board(board);
-	printf("Copied board\n");
+	int ret;
 	if(check_board_errors(b_copy) == 1){
-		printf("Error: The board has erroneous cells.\n");
+		printf("Error: The board has erroneous cells so no solution is possible.\n");
 		return 0;
 	}
-	printf("Checked for errors\n");
-	if(find_ILP_solution(b_copy,1) == 1){
-		printf("The found solution is:\n");
+
+	autofill(&b_copy); /*autofilling to make ilp easier*/
+
+	ret = find_ILP_solution(b_copy,1);
+	if(ret == 1){
+		printf("ilp success. The found solution is:\n"); /*need to earase this and turn function to type 0*/
 		printBoard(b_copy);
 		destroyBoard(b_copy);
 		return 1;
 	}
 	destroyBoard(b_copy);
-	return 0;
+	return ret;
 }
 
 /*
@@ -422,14 +420,20 @@ void save(char* path){
 	FILE* file;
 	int i,j;
 	Cell* cell;
+	int ret;
 
 	if(current_mode == EDIT_MODE){
 		if(check_board_errors(board) == 1){
 			printf("Error: The board currently has errors, so it can't be saved.\n");
 			return;
 		}
-		if(validate_board(board) == 0){
+		ret = validate_board(board);
+		if(ret == -1){
 			printf("Error: The board has no solution, so it can't be saved.\n");
+			return;
+		}
+		if(ret == 0){
+			printf("Error: Validation with ilp failed, so board can't be saved.\n");
 			return;
 		}
 	}
@@ -575,10 +579,15 @@ void execute_command(Command* command){
 			set(board, col, row, inserted_val);
 			break;
 		case VALIDATE:
-			if(validate_board(board) == 1)
+			num_filled = validate_board(board);
+			if(num_filled == 1)
 				printf("Board validated successfully. A solutions exists.\n");
-			else
-				printf("The board has no solution. (Or an error occurred).\n");
+			else{
+				if(num_filled == -1)
+					printf("The board has no solution.\n");
+				else
+					printf("Error: Validation failed because of an Error. You can try again.\n");
+			}
 			break;
 		case GENERATE:
 			break;
