@@ -28,7 +28,6 @@ void createCell(Cell* cell,int val){
 Board* create_blank_board(int blockCols, int blockRows){
 	int i, j;
 	Board* board;
-	Cell** solution;
 	Cell** current;
 
 	if((board = (Board*) malloc(sizeof(Board))) == NULL){
@@ -39,33 +38,25 @@ Board* create_blank_board(int blockCols, int blockRows){
 	board->block_cols = blockCols;
 	board->board_size = blockCols*blockRows;
 	board->num_empty_cells_current = board->board_size*board->board_size;
-	board->num_empty_cells_solution = board->board_size*board->board_size;
 
 
-	if((solution = (Cell**) malloc(board->board_size*sizeof(Cell*))) == NULL){
-			fprintf(stderr,"%s",MALLOC_ERROR);
-			free(board);
-			exit(0);
-		}
+
 	if((current = (Cell**) malloc(board->board_size*sizeof(Cell*))) == NULL){
 		fprintf(stderr,"%s",MALLOC_ERROR);
 		free(board);
 		exit(0);
 	}
 	for(i = 0; i < board->board_size; i++){
-		solution[i] = (Cell*) malloc(board->board_size*sizeof(Cell));
 		current[i] = (Cell*) malloc(board->board_size*sizeof(Cell));
-		if(current[i] == NULL || solution[i] == NULL){
+		if(current[i] == NULL){
 			fprintf(stderr,"%s",MALLOC_ERROR);
 			free(board);
 			exit(0);
 		}
 		for(j = 0; j < board->board_size; j++){
-			createCell(&solution[i][j],0);
 			createCell(&current[i][j],0);
 		}
 	}
-	board->solution = solution;
 	board->current_board = current;
 
 	board->turns = initialize_turn_list();
@@ -94,7 +85,6 @@ void destroy_game_board(Cell** board, int size){
 void destroyBoard(Board* b){
 	if(b != NULL){
 		destroy_game_board(b->current_board, b->board_size);
-		destroy_game_board(b->solution, b->board_size);
 		destroy_turn_list(b->turns);
 		free(b);
 	}
@@ -155,16 +145,12 @@ void printIsError(Board* b){
  * if type == 1: prints the board's known solution.
  * otherwise, prints board's current state board.
  */
-void printBoard(Board* b, int type){
+void printBoard(Board* b){
 	int i, j;
 	Cell** board;
 	char* sep_row;
 	int total_row_length = (4* b->board_size) + b->block_rows + 1;
-
-	if(type == 1)
-		board = b->solution;
-	else
-		board = b->current_board;
+	board = b->current_board;
 
 	sep_row = (char*) malloc((total_row_length + 2)*sizeof(char));
 	for( i = 0; i < total_row_length; i++ ){
@@ -189,32 +175,6 @@ void printBoard(Board* b, int type){
 	free(sep_row);
 }
 
-/*
- * Generates a game board with fixed cells according to user input.
- *
- * Gets a pointer to an already created blank Board.
- * generates a randomized full legal board and stores it in solution.
- */
-void generate_user_board(Board* board){
-	int fixedCells;
-	int row, col;
-
-	printf("Please enter the number of cells to fill [0-80]:\n");
-	fixedCells = get_fixed_cells(board);
-
-	backtracking_solution(board, 1);
-
-	while( fixedCells > 0 ){
-		col = rand() % (board->board_size);
-		row = rand() % (board->board_size);
-		if(board->current_board[row][col].isFixed == 0){
-			board->current_board[row][col].value = board->solution[row][col].value;
-			board->current_board[row][col].isFixed = 1;
-			fixedCells--;
-			board->num_empty_cells_current--;
-		}
-	}
-}
 
 /*
  * Creates and returns a duplicate of a given game_board. (the actual matrix of cells, not Board).
@@ -260,10 +220,8 @@ Board* copy_Board(Board* b){
 	copy_board->block_cols = b->block_cols;
 	copy_board->board_size = b->board_size;
 	copy_board->num_empty_cells_current = b->num_empty_cells_current;
-	copy_board->num_empty_cells_solution = b->num_empty_cells_solution;
 
 	copy_board->current_board = copy_game_board(b->current_board,b->board_size);
-	copy_board->solution = copy_game_board(b->solution,b->board_size);
 	copy_board->turns = copy_turns_list(b->turns);
 
 	return copy_board;

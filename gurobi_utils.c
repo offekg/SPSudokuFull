@@ -159,7 +159,7 @@ int add_constraints(Board* board, GRBenv** env, GRBmodel** model, int var_amount
 	for(i = 0; i < board_size; i++)
 		for(j = 0; j < board_size; j++){
 			printf("  entered 2nd for\n");
-			*curr_cell = board->current_board[i][j];
+			curr_cell = &(board->current_board[i][j]);
 			printf("  used cell <%d,%d>. it has value %d\n",j+1,i+1,curr_cell->value);
 			if(curr_cell->value == 0){
 				printf("entered the if 0\n");
@@ -296,11 +296,11 @@ int find_ILP_solution(Board* board, int save_solution){
 	autofill(&board);
 	game_board = board->current_board;
 	printf("autofilled succeffuly:\n");
-	printBoard(board,0);
+	printBoard(board);
 
 	/* Create environment */
 	error = create_env(&env, &model);
-	if(error == 0)
+	if(error == 0 || env == NULL || model == NULL)
 		return 0;
 	printf("created env\n");
 

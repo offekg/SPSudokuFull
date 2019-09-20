@@ -50,31 +50,6 @@ void opening_message(){
 	INIT_Mode_print();
 }
 
-/*
- * For use in user comand "validate".
- * Checks that the current_board of b is solvable.
- * if it is - sets b->solution to be the found solution.
- * if not - prints a message accordingly.
- */
-void validate(Board* b){
-	Cell** current_copy = copy_game_board(b->current_board, b->board_size);
-	int empty_cells_copy = b->num_empty_cells_current;
-
-	int solvable = backtracking_solution(b, 0);
-	if( solvable == 0){
-		printf("Validation failed: board is unsolvable\n");
-		destroy_game_board(b->current_board,b->board_size);
-		b->current_board = current_copy;
-		b->num_empty_cells_current = empty_cells_copy;
-	}
-	else{
-		printf("Validation passed: board is solvable\n");
-		destroy_game_board(b->solution, b->board_size);
-		b->solution = b->current_board;
-		b->current_board = current_copy;
-		b->num_empty_cells_current = empty_cells_copy;
-	}
-}
 
 /*
  * Function checks if the given board has no more empty cells.
@@ -159,31 +134,16 @@ void set(Board* b, int col, int row, int inserted_val) {
 	set_value_simple(b, row, col, inserted_val);
 
 
-	printBoard(board, 0);
+	printBoard(board);
 	/*printf("num empty cells: %d\n",board->num_empty_cells_current);*/
 	check_full_board(b,1);
 	return;
 }
 
 /*
- * For use when user enters command restart.
- * restarts the game board from scratch, generating a new puzzle.
+ * Exits cleanly from game.
+ * for use with EXIT command
  */
-void restart(Board* board){
-	int i, j;
-	board->num_empty_cells_current = board->board_size*board->board_size;
-	board->num_empty_cells_solution = board->board_size*board->board_size;
-	for(i = 0; i < board->board_size; i++){
-		for(j = 0; j < board->board_size; j++){
-			createCell(&board->solution[i][j],0);
-			createCell(&board->current_board[i][j],0);
-		}
-	}
-
-	generate_user_board(board);
-	printBoard(board,0);
-}
-
 void exit_game(Board* board){ /*^^^check need to destroy turns list^^^*/
 	destroyBoard(board);
 	printf("Now Exiting The Game\nGoodbye!");
@@ -253,7 +213,7 @@ int load_board(char* path, enum game_mode mode){
 					fclose(file);
 					return 0;
 				}
-				if( check_valid_value(board,value,i,j,0,1) == 0 ){
+				if( check_valid_value(board,value,i,j,1) == 0 ){
 					printf("Error: File is not a legal representation of a sudoku board.\n");
 					printf("There are at least 2 fixed cells that clash with each other.\n");
 					destroyBoard(board);
@@ -311,7 +271,7 @@ void solve(char* path){
 		SOLVE_Mode_print();
 	}
 
-	printBoard(board,0);
+	printBoard(board);
 	check_full_board(board,1);
 }
 
@@ -331,7 +291,7 @@ void edit(char* path){
 		current_mode = EDIT_MODE;
 		EDIT_Mode_print();
 	}
-	printBoard(board,0);
+	printBoard(board);
 }
 
 /*
@@ -398,7 +358,7 @@ int validate_board(Board* board){
 	printf("Checked for errors\n");
 	if(find_ILP_solution(b_copy,1) == 1){
 		printf("The found solution is:\n");
-		printBoard(b_copy,0);
+		printBoard(b_copy);
 		destroyBoard(b_copy);
 		return 1;
 	}
@@ -527,7 +487,7 @@ void undo(Board* b, int to_print){
 
 	turns->position_in_list -= 1;
 	if(to_print)
-		printBoard(b,0);
+		printBoard(b);
 	return;
 }
 
@@ -566,7 +526,7 @@ void redo(Board* b, int to_print){
 		turns->current_move = turns->top;
 	}
 	turns->position_in_list += 1;
-	printBoard(b,0);
+	printBoard(b);
 	return;
 }
 
@@ -578,7 +538,7 @@ void reset_board(Board* b) {
 	while (b->turns->position_in_list > 0) {
 		undo(b, 0);
 	}
-	printBoard(b,0);
+	printBoard(b);
 }
 
 
@@ -605,11 +565,11 @@ void execute_command(Command* command){
 				printf("Error: Invalid Command - mark_errors can only be used with 0 or 1.\n");
 			else{
 				mark_errors = binary_param;
-				printBoard(board,0);
+				printBoard(board);
 			}
 			break;
 		case PRINT_BOARD:
-			printBoard(board,0);
+			printBoard(board);
 			break;
 		case SET:
 			set(board, col, row, inserted_val);
@@ -618,7 +578,7 @@ void execute_command(Command* command){
 			if(validate_board(board) == 1)
 				printf("Board validated successfully. A solutions exists.\n");
 			else
-				printf("The board has no solution.\n");
+				printf("The board has no solution. (Or an error occurred).\n");
 			break;
 		case GENERATE:
 			break;
@@ -641,7 +601,7 @@ void execute_command(Command* command){
 		case AUTOFILL:
 			num_filled = autofill(&board);
 			printf("Successfully filled %d cells\n", num_filled);
-			printBoard(board,0);
+			printBoard(board);
 			check_full_board(board,1);
 			break;
 		case RESET:

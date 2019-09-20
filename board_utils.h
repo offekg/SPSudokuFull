@@ -29,23 +29,18 @@ typedef struct cell_t{
  * 		Represents a sudoku board.
  *
  * 		current_board: a 2D Cell array, representing the state of the actual board the user tries to solve.
- * 		solution: a 2D Cell array, representing a possible solution to the game board.
  * 		board_size: the dimension of the game board - amount of rows and of columns.
  * 		block_rows: the amount of rows in one block.
  * 		block_cols: the amount of columns in one block.
  * 		num_empty_cells_current:  the amount of empty cells the current_board has at given time.
- * 		num_empty_cells_solution: for use while computing initial backtrack solution.
- * 								  the amount of empty cells left in solution board.
  * 		turns:  A TurnsList representing all moves done on the board (for use of undo/redo).
  */
 typedef struct board_t{
 	Cell** current_board;
-	Cell** solution;
 	int board_size; /* number of rows and columns of game board */
 	int block_rows; /* m; number of rows in one block */
 	int block_cols; /* n; number of columns in one block */
 	int num_empty_cells_current;
-	int num_empty_cells_solution;
 	TurnsList* turns;
 } Board;
 
@@ -55,19 +50,6 @@ typedef struct board_t{
  * Returns a pointer to a Board struct, with the current game board and solution board set to default (all zeros).
  */
 Board* create_blank_board(int blockRows, int blockCols);
-
-/*
- * Creates and returns a duplicate of a given game_board. (the actual matrix of cells, not Board).
- */
-Cell** copy_game_board(Cell** game_board, int board_size);
-
-/*
- * Generates a game board with fixed cells according to user input.
- *
- * Gets a pointer to an already created blank Board.
- * generates a randomized full legal board and stores it in solution.
- */
-void generate_user_board(Board *originalBoard);
 
 
 /*
@@ -92,7 +74,7 @@ void destroyBoard(Board* b);
  * if type == 1: prints the board's known solution.
  * otherwise, prints board's current state board.
  */
-void printBoard(Board* b, int type);
+void printBoard(Board* b);
 
 void printIsError(Board* b);
 
